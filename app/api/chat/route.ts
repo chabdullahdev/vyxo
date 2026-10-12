@@ -10,6 +10,7 @@ import { memoryStore } from "@/lib/memory/store";
 import { OllamaError } from "@/lib/models/ollama";
 import { getProvider } from "@/lib/models/registry";
 import type { ChatMessage } from "@/lib/models/types";
+import { buildSystemMessages } from "@/lib/prompt";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -124,9 +125,10 @@ export async function POST(request: NextRequest) {
             maxContextChars: MEMORY_MAX_CONTEXT_CHARS,
           },
         );
-        const messages: ChatMessage[] = memoryContext
-          ? [{ role: "system", content: memoryContext }, ...result.messages]
-          : result.messages;
+        const messages: ChatMessage[] = [
+          ...buildSystemMessages(memoryContext),
+          ...result.messages,
+        ];
 
         for await (const text of provider.streamChat({
           messages,

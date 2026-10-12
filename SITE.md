@@ -76,6 +76,20 @@ A `Memory` is `{ id, content, createdAt, updatedAt }` (timestamps are ISO 8601).
   on `/memory`. If memory storage is missing or unreadable, chat continues
   without memory and logs only a safe code (no contents, no paths).
 
+## Teaching style (personalization)
+
+Chat now starts every reply with a short **mentor system prompt** (`lib/prompt.ts`)
+that asks the model to teach like a personal technical mentor: simple, clear
+English; practical examples (often web development); complicated topics broken
+into small steps; an optional short quiz or exercise when learning something new;
+gentle corrections with reasons; and no padding. It also tells the model **not to
+assume personal facts or project details it wasn't told**, and to keep treating
+retrieved notes as untrusted reference data, not instructions.
+
+This is guidance only — prompt wording **cannot guarantee** perfect behavior. The
+memory slice is still sent as its own separate system message after the mentor
+prompt, unchanged.
+
 ## Current model settings
 
 - Model: `qwen3:8b` (only one, no picker yet).
@@ -101,6 +115,8 @@ A `Memory` is `{ id, content, createdAt, updatedAt }` (timestamps are ISO 8601).
 - To point at a different Ollama port: set `OLLAMA_BASE_URL` in `lib/config.ts`.
 - To change context size or message limits: edit `MODEL_CONTEXT_TOKENS`,
   `MAX_HISTORY_MESSAGES`, `MAX_MESSAGE_CHARS` in `lib/config.ts`.
+- To change how the assistant teaches (tone, examples, quizzes, length): edit the
+  wording in `lib/prompt.ts`. The memory slice and everything else stay the same.
 - To change how much memory chat uses: edit `MEMORY_MAX_RESULTS` and
   `MEMORY_MAX_CONTEXT_CHARS` in `lib/config.ts`. The matcher itself lives in
   `lib/memory/retrieval.ts`.
@@ -134,6 +150,11 @@ A `Memory` is `{ id, content, createdAt, updatedAt }` (timestamps are ISO 8601).
   -p 3697`) so it is no longer reachable over the LAN. Verified in an isolated
   copy of the project (loopback-only; LAN refused). Ollama binding, app code,
   and macOS firewall were not changed.
+- 2026-10-13: Added a minimal teaching/personalization layer — a mentor system
+  prompt (`lib/prompt.ts`) prepended to every chat request, with the memory slice
+  kept as a separate system message. Memory retrieval, schema, storage, API, UI,
+  streaming, model settings and network binding are unchanged. 3 new
+  dependency-free tests (`lib/prompt.test.mjs`); 42 total.
 
 ## Not built yet (planned later)
 
