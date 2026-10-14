@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { Space_Grotesk, DM_Sans } from "next/font/google";
 import "./globals.css";
 import { AgentationProvider } from "@/components/AgentationProvider";
+import { WorkspaceShell } from "@/components/workspace/WorkspaceShell";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -16,19 +18,23 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Ship Studio",
-  description: "How professionals build with AI. No coding required.",
+  title: "VYXO",
+  description: "A private, local-first AI workspace.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  if (process.env.SHIPSTUDIO_DESKTOP === "1") {
+    await headers();
+  }
+
   return (
     <html lang="en" className={`${spaceGrotesk.variable} ${dmSans.variable}`}>
       <body className="font-[family-name:var(--font-body)] antialiased">
-        {children}
+        <WorkspaceShell>{children}</WorkspaceShell>
         <AgentationProvider />
       </body>
     </html>

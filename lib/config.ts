@@ -9,6 +9,8 @@ export const MAX_HISTORY_MESSAGES = 40;
 
 export const MAX_MESSAGE_CHARS = 8000;
 
+export const MAX_CHAT_REQUEST_BYTES = 2 * 1024 * 1024;
+
 export const REQUEST_TIMEOUT_MS = 5 * 60 * 1000;
 
 export const MEMORY_MAX_RESULTS = 5;

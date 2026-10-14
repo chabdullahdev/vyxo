@@ -1,16 +1,18 @@
-import { DEFAULT_MODEL, MODEL_CONTEXT_TOKENS } from "@/lib/config";
-import { OllamaProvider } from "./ollama";
-import type { ModelProvider } from "./types";
+import { DEFAULT_MODEL, MODEL_CONTEXT_TOKENS } from "../config.ts";
+import { OllamaProvider } from "./ollama.ts";
+import type { ModelProvider } from "./types.ts";
 
-let provider: ModelProvider | null = null;
+const providers = new Map<string, ModelProvider>();
 
-export function getProvider(): ModelProvider {
-  if (!provider) {
-    provider = new OllamaProvider({
-      id: DEFAULT_MODEL,
-      label: DEFAULT_MODEL,
-      contextTokens: MODEL_CONTEXT_TOKENS,
-    });
-  }
+export function getProvider(modelId: string = DEFAULT_MODEL): ModelProvider {
+  const cached = providers.get(modelId);
+  if (cached) return cached;
+
+  const provider = new OllamaProvider({
+    id: modelId,
+    label: modelId,
+    contextTokens: MODEL_CONTEXT_TOKENS,
+  });
+  providers.set(modelId, provider);
   return provider;
 }

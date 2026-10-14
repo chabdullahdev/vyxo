@@ -15,10 +15,12 @@
 
 # next.js
 /.next/
+/.next-desktop/
 /out/
 
 # production
 /build
+/release/
 
 # misc
 .DS_Store

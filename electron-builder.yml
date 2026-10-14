@@ -1,0 +1,37 @@
+appId: com.shipstudio.ai
+productName: Ship Studio AI
+directories:
+  buildResources: desktop/resources
+  output: release
+files:
+  - desktop/main.cjs
+  - package.json
+extraResources:
+  - from: .next-desktop/standalone
+    to: next-server
+    filter:
+      - "**/*"
+      - "!**/.env*"
+      - "!**/*.pem"
+      - "!**/memories.json"
+  - from: .next-desktop/standalone/node_modules
+    to: next-server/node_modules
+    filter:
+      - "**/*"
+      - "!**/.env*"
+      - "!**/*.pem"
+      - "!**/memories.json"
+  - from: .next-desktop/static
+    to: next-server/.next-desktop/static
+    filter:
+      - "**/*"
+mac:
+  category: public.app-category.productivity
+  icon: desktop/resources/icon.svg
+  target:
+    - target: dir
+      arch:
+        - arm64
+dmg:
+  title: Ship Studio AI
+artifactName: "${productName}-${version}-${arch}.${ext}"

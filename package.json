@@ -2,16 +2,24 @@
   "name": "static-marketing-site-starter",
   "version": "0.1.0",
   "private": true,
+  "main": "desktop/main.cjs",
   "scripts": {
     "dev": "next dev -H 127.0.0.1 -p 3697",
     "build": "next build",
-    "start": "next start",
+    "desktop:dev": "SHIPSTUDIO_DESKTOP_DEV=1 electron .",
+    "desktop:picker-check": "node desktop/picker-e2e.cjs",
+    "build:desktop": "SHIPSTUDIO_DESKTOP=1 SHIPSTUDIO_DESKTOP_BUILD=1 next build",
+    "desktop:dir": "npm run build:desktop && electron-builder --config electron-builder.yml --mac dir",
+    "desktop:dmg": "npm run build:desktop && electron-builder --config electron-builder.yml --mac dmg",
+    "desktop:smoke": "node desktop/unpacked-smoke.cjs",
+    "start": "next start -H 127.0.0.1 -p 3697",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --test"
   },
   "dependencies": {
     "agentation": "^3.0.1",
-    "next": "16.1.2",
+    "next": "16.4.1",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },
@@ -20,8 +28,10 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "electron": "^44.7.0",
+    "electron-builder": "^26.15.3",
     "eslint": "^9",
-    "eslint-config-next": "16.1.2",
+    "eslint-config-next": "16.4.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

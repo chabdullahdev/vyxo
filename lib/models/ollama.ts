@@ -1,9 +1,9 @@
-import { OLLAMA_BASE_URL, REQUEST_TIMEOUT_MS } from "@/lib/config";
+import { OLLAMA_BASE_URL, REQUEST_TIMEOUT_MS } from "../config.ts";
 import type {
   ModelInfo,
   ModelProvider,
   StreamChatOptions,
-} from "./types";
+} from "./types.ts";
 
 export class OllamaError extends Error {
   constructor(message: string) {
