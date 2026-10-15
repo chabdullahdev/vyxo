@@ -224,7 +224,6 @@ export function ChatView({
         ...history,
         { id: nextId(), role: "assistant", content: "", status: "complete" },
       ]);
-      setInput("");
 
       const outgoing = history.slice(-MAX_HISTORY_MESSAGES);
 
@@ -249,6 +248,8 @@ export function ChatView({
           data?.error ?? `Request failed (status ${response.status}).`,
         );
       }
+
+      setInput("");
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
@@ -298,6 +299,7 @@ export function ChatView({
             ? caught.message
             : "Something went wrong. Please try again.";
         setError(message);
+        setInput(text);
         settleAssistant("failed", message);
       }
     } finally {

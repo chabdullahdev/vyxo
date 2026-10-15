@@ -16,12 +16,13 @@ chat, project files, Debug Mode, and memory tools remain the working features.
 - Colors: obsidian `#0b0c10`, deep surfaces, silver-white text, muted grey, and a
   restrained electric-violet accent `#a99bff`.
 - Fonts: Space Grotesk (display) + DM Sans (body), from the starter.
-- The in-app mark is currently a replaceable placeholder at
-  `public/brand/vyxo-mark-placeholder.svg`; replace that file with the final VYXO
-  mark when it is provided.
-- Electron still points to `desktop/resources/icon.svg`. A final macOS icon should
-  be supplied as an `.icns` file generated from a 1024px master in a later
-  packaging step. No final icon or bundle identity change has been made.
+- The in-app mark is the VYXO wordmark at `public/brand/logo-white.svg` (off-white,
+  for the dark obsidian sidebar) with `public/brand/logo-black.svg` kept for light
+  backgrounds; `public/brand/app-icon.png` is the 864×864 RGBA app-icon source. The
+  placeholder at `public/brand/vyxo-mark-placeholder.svg` is no longer referenced.
+- Electron points to `desktop/resources/icon.icns`, built from
+  `public/brand/app-icon.png` (converted to a macOS `.icns` icon set). The app icon
+  appears in the packaged `.app`, the macOS Dock, and the installer volume.
 
 ## Pages
 
@@ -727,6 +728,24 @@ prompt-injection isolation).
 
 ## Recent Changes
 
+- 2026-10-15: Branding and macOS installer — integrated the VYXO wordmark assets
+  (`public/brand/logo-white.svg` for the dark sidebar, `public/brand/logo-black.svg`
+  for light backgrounds, `public/brand/app-icon.png` as the icon source), replaced
+  the sidebar placeholder with the real logo, and built the macOS `.dmg` installer
+  (`release/VYXO-0.1.0-arm64.dmg`) using `desktop/resources/icon.icns`
+  (converted from the app-icon source via `sips`/`iconutil`). The packaged app,
+  Dock icon, and installer volume all use the new branding. 248 tests, lint,
+  typecheck, both builds, the desktop `.dmg` build, and the packaged smoke test all
+  pass.
+- 2026-10-15: Phase 10 stabilization — fixed a chat reliability bug where the
+  composer input was cleared before the request reached the server, so a
+  recoverable error (server failure or network loss) discarded the user's typed
+  message. Input is now cleared only after the request is accepted, and the
+  typed text is restored on a non-cancelled failure so nothing is lost.
+  Validated end-to-end with the packaged smoke test (chat streaming/Stop,
+  memory CRUD, API auth, CSP, clean shutdown against an isolated HOME). 248
+  tests, lint, typecheck, both builds, diff check, and production audit all
+  pass.
 - 2026-10-13: Milestone 1 — added `/chat`, a server-side streaming route to
   Ollama, and a modular model layer. Added Stop/cancel, request validation,
   error handling, and hidden reasoning output. Conversations are client-side only.
@@ -962,7 +981,7 @@ not a release: it is unsigned and has no `.dmg` yet.
   desktop app can only connect back to its own loopback origin.
 - **Commands:** `npm run build:desktop` builds the isolated `.next-desktop` output;
   `npm run desktop:dir` builds the unpacked `.app` at
-  `release/mac-arm64/Ship Studio AI.app`; `npm run desktop:dev` opens an Electron
+  `release/mac-arm64/VYXO.app`; `npm run desktop:dev` opens an Electron
   window against a separate dev server; `npm run desktop:picker-check` runs the
   read-only folder-picker check; `npm run desktop:smoke` runs the unpacked-app
   smoke test (requires the `.app` and a local Ollama model).
@@ -1000,7 +1019,7 @@ was never opened for writing). Observed results from that run:
   part of the smoke harness; routes compile and load), and signed/notarized `.dmg`
   distribution.
 
-Use `SHIPSTUDIO_SMOKE_APP_EXECUTABLE=/path/to/Ship Studio AI` to point the smoke at
+Use `SHIPSTUDIO_SMOKE_APP_EXECUTABLE=/path/to/VYXO` to point the smoke at
 a bundle built to a non-default output directory.
 
 ## Not built yet (planned later)

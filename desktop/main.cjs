@@ -41,7 +41,7 @@ if (singleInstanceLock) {
     }
     process.exitCode = 1;
     dialog.showErrorBox(
-      "Ship Studio AI could not start",
+      "VYXO could not start",
       "The local app server did not start. The existing development preview and your memories were not changed.",
     );
     app.quit();
@@ -112,7 +112,7 @@ function launchNextServer(port, token, origin) {
   return utilityProcess.fork(serverPath, args, {
     cwd: workingDirectory,
     env: environment,
-    serviceName: "Ship Studio AI Next.js server",
+    serviceName: "VYXO Next.js server",
     stdio: ["ignore", "ignore", "pipe"],
   });
 }
@@ -186,7 +186,7 @@ async function startManagedServer() {
         if (!quitting && desktopWindow && !desktopWindow.isDestroyed()) {
           console.error(`[desktop] local server exited (code ${code}).`);
           dialog.showErrorBox(
-            "Ship Studio AI server stopped",
+            "VYXO server stopped",
             "The local app server stopped unexpectedly. Quit and reopen the app to try again.",
           );
           app.quit();

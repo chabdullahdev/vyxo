@@ -5,6 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
+import logoWhite from "../../public/brand/logo-white.svg";
+
 type IconName =
   | "agents"
   | "chat"
@@ -185,21 +187,18 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
         >
           <div className={`flex h-12 items-center gap-3 px-2 ${collapsed ? "lg:justify-center" : ""}`}>
             <Image
-              src="/brand/vyxo-mark-placeholder.svg"
-              alt="VYXO placeholder mark"
-              width={30}
-              height={30}
+              src={logoWhite}
+              alt="VYXO"
+              width={753}
+              height={240}
               priority
-              className="h-[30px] w-[30px] rounded-[10px]"
+              className="object-contain block"
+              style={{
+                height: collapsed ? 20 : 30,
+                width: "auto",
+                maxWidth: collapsed ? 60 : 94,
+              }}
             />
-            <div className={collapsed ? "lg:hidden" : ""}>
-              <p className="font-[family-name:var(--font-display)] text-[15px] font-semibold tracking-[0.22em] text-[var(--foreground)]">
-                VYXO
-              </p>
-              <p className="mt-0.5 text-[9px] uppercase tracking-[0.2em] text-[var(--muted)]">
-                Private workspace
-              </p>
-            </div>
           </div>
 
           <Link

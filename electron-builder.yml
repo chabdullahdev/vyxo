@@ -1,5 +1,5 @@
 appId: com.shipstudio.ai
-productName: Ship Studio AI
+productName: VYXO
 directories:
   buildResources: desktop/resources
   output: release
@@ -27,11 +27,11 @@ extraResources:
       - "**/*"
 mac:
   category: public.app-category.productivity
-  icon: desktop/resources/icon.svg
+  icon: desktop/resources/icon.icns
   target:
     - target: dir
       arch:
         - arm64
 dmg:
-  title: Ship Studio AI
+  title: VYXO
 artifactName: "${productName}-${version}-${arch}.${ext}"

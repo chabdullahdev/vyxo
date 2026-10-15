@@ -12,10 +12,10 @@ const appExecutable =
     projectRoot,
     "release",
     "mac-arm64",
-    "Ship Studio AI.app",
+    "VYXO.app",
     "Contents",
     "MacOS",
-    "Ship Studio AI",
+    "VYXO",
   );
 
 function wait(milliseconds) {
