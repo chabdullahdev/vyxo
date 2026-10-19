@@ -3,7 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+import { ModelBadge } from "@/components/workspace/ModelBadge";
 
 import logoWhite from "../../public/brand/logo-white.svg";
 
@@ -168,8 +170,23 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
 
   const closeMobile = () => setMobileOpen(false);
 
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [mobileOpen]);
+
   return (
     <div className="flex h-screen overflow-hidden bg-[var(--background)] text-[var(--foreground)]">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-[var(--foreground)] focus:px-3 focus:py-2 focus:text-sm focus:text-[var(--background)]"
+      >
+        Skip to content
+      </a>
       {mobileOpen ? (
         <button
           type="button"
@@ -289,15 +306,11 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
                   {activeLabel}
                 </h1>
               </div>
-              <div className="ml-auto flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface)] px-3 py-1.5 text-[10px] uppercase tracking-[0.14em] text-[var(--muted)]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
-                <span className="hidden sm:inline">Local</span>
-                <span className="text-[var(--foreground)]">Qwen3:8B</span>
-              </div>
+              <ModelBadge />
             </div>
           </header>
 
-          <main className="min-h-0 flex-1 overflow-y-auto px-4 py-8 sm:px-6 lg:px-8">
+          <main id="main" className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
             {children}
           </main>
         </div>

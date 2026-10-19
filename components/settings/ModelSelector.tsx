@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { MODEL_CHANGED_EVENT } from "@/components/workspace/useModelCatalog";
 import type { ModelCatalog } from "@/lib/models/catalog";
 
 interface ModelSelectorProps {
@@ -79,6 +80,7 @@ export function ModelSelector({ variant = "compact" }: ModelSelectorProps) {
           return;
         }
         apply(await fetchCatalog());
+        window.dispatchEvent(new Event(MODEL_CHANGED_EVENT));
       } catch {
         setError("Couldn't reach the local server.");
       } finally {

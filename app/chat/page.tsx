@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ChatWorkspace } from "@/components/chat/ChatWorkspace";
 import { ModelSelector } from "@/components/settings/ModelSelector";
+import { SetupGuide } from "@/components/workspace/SetupGuide";
 
 export const metadata: Metadata = {
   title: "Chat · VYXO",
@@ -21,28 +22,18 @@ export default async function ChatPage({ searchParams }: ChatPageProps) {
 
   return (
     <section className="mx-auto flex h-full min-h-0 w-full max-w-[1320px] flex-col">
-      <header className="mb-6 flex shrink-0 flex-col justify-between gap-4 sm:flex-row sm:items-end">
+      <header className="mb-4 flex shrink-0 flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div>
-          <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.24em] text-[var(--accent)]">
-            Local model / saved on this Mac
+          <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.24em] text-[var(--accent)]">
+            Private · runs on this computer
           </p>
-          <h2 className="font-[family-name:var(--font-display)] text-3xl font-semibold tracking-[-0.04em] text-[var(--foreground)] sm:text-4xl">
+          <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold tracking-[-0.03em] text-[var(--foreground)]">
             Think out loud.
           </h2>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--muted)]">
-            Talk with your selected local model on this Mac. Conversations are
-            saved locally, and selected project files are read only for the
-            current request.
-          </p>
         </div>
-        <div className="flex flex-col items-start gap-2 sm:items-end">
-          <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-[var(--muted)]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
-            No cloud routing
-          </div>
-          <ModelSelector />
-        </div>
+        <ModelSelector />
       </header>
+      <SetupGuide />
       <ChatWorkspace initialConversationId={conversationId} initialProjectId={projectId} />
     </section>
   );

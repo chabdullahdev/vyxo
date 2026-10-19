@@ -44,3 +44,6 @@ next-env.d.ts
 
 # ShipStudio metadata
 .shipstudio/
+
+# local tooling
+.playwright-mcp/

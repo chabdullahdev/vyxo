@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { CopyButton } from "@/components/chat/CopyButton";
+import { MarkdownContent } from "@/components/chat/MarkdownContent";
 import { ProjectExplorer } from "@/components/chat/ProjectExplorer";
-import { splitFencedCode } from "@/lib/chat/content";
 import { MAX_HISTORY_MESSAGES } from "@/lib/config";
 import {
   readSelectedProjectFiles,
@@ -45,6 +46,13 @@ let counter = 0;
 const nextId = () => `${Date.now()}-${counter++}`;
 
 const COMPOSER_MAX_PX = 200;
+const STICK_THRESHOLD_PX = 80;
+
+const STARTER_PROMPTS = [
+  "Explain how async/await works with a short example",
+  "Help me plan the structure of a small web app",
+  "Review my approach and point out what I might be missing",
+];
 
 type CreateConversationResult =
   | { ok: true; id: string }
@@ -98,6 +106,8 @@ export function ChatView({
 
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const stickToBottomRef = useRef(true);
+  const [showJump, setShowJump] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const conversationIdRef = useRef<string | null>(conversationId);
 
@@ -105,10 +115,28 @@ export function ChatView({
     if (conversationId) conversationIdRef.current = conversationId;
   }, [conversationId]);
 
+  // Follow new text only while the reader is at the bottom; scrolling up to
+  // re-read an answer must not be undone by the next streamed token.
   useEffect(() => {
     const node = scrollRef.current;
-    if (node) node.scrollTop = node.scrollHeight;
+    if (node && stickToBottomRef.current) node.scrollTop = node.scrollHeight;
   }, [messages]);
+
+  const handleScroll = useCallback(() => {
+    const node = scrollRef.current;
+    if (!node) return;
+    const atBottom =
+      node.scrollHeight - node.scrollTop - node.clientHeight <= STICK_THRESHOLD_PX;
+    stickToBottomRef.current = atBottom;
+    setShowJump((current) => (current === !atBottom ? current : !atBottom));
+  }, []);
+
+  const jumpToLatest = useCallback(() => {
+    const node = scrollRef.current;
+    if (!node) return;
+    stickToBottomRef.current = true;
+    node.scrollTo({ top: node.scrollHeight, behavior: "smooth" });
+  }, []);
 
   useEffect(() => {
     const node = textareaRef.current;
@@ -180,6 +208,8 @@ export function ChatView({
     setError(null);
     setNotice(null);
     setIsStreaming(true);
+    // Sending is an explicit "show me the answer" action.
+    stickToBottomRef.current = true;
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -374,70 +404,107 @@ export function ChatView({
         onSelectionChange={handleProjectSelectionChange}
       />
 
-      <div
-        ref={scrollRef}
-        className="min-h-0 flex-1 space-y-6 overflow-y-auto overflow-x-hidden p-6"
-      >
-        {messages.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center text-center">
-            <p className="font-[family-name:var(--font-display)] text-lg font-semibold text-[var(--foreground)]">
-              Local chat is ready
-            </p>
-            <p className="mt-2 max-w-sm text-sm text-[var(--muted)]">
-              This conversation is saved locally on this Mac. Nothing is sent
-              to the cloud.
-            </p>
-          </div>
-        ) : (
-          messages.map((message) => (
-            <div
-              key={message.id}
-              className={
-                message.role === "user"
-                  ? "ml-auto max-w-[85%] whitespace-pre-line [overflow-wrap:anywhere] rounded-2xl rounded-br-sm bg-[var(--foreground)] px-4 py-3 text-[var(--background)]"
-                  : "mr-auto max-w-[85%] whitespace-pre-wrap [overflow-wrap:anywhere] rounded-2xl rounded-bl-sm border border-[var(--foreground)]/10 px-4 py-3 text-[var(--foreground)]"
-              }
-            >
-              {message.role === "assistant" && message.status !== "complete" ? (
-                <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
-                  {message.status === "interrupted"
-                    ? "Interrupted · partial response"
-                    : "Could not complete"}
-                </p>
-              ) : null}
-              {message.content ? (
-                message.role === "assistant" ? (
-                  splitFencedCode(message.content).map((segment, index) =>
-                    segment.type === "code" ? (
-                      <pre
-                        key={index}
-                        className="my-2 max-w-full overflow-x-auto whitespace-pre rounded-lg border border-[var(--line)] bg-[var(--surface-deep)]/60 p-3 font-mono text-[12px] leading-5 text-[var(--foreground)] [overflow-wrap:normal]"
-                      >
-                        {segment.content}
-                      </pre>
-                    ) : (
-                      <span key={index}>{segment.content}</span>
-                    ),
-                  )
-                ) : (
-                  message.content
-                )
-              ) : message.role === "assistant" && isStreaming ? (
-                <span className="text-[var(--muted)]">Thinking…</span>
-              ) : null}
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        <div
+          ref={scrollRef}
+          onScroll={handleScroll}
+          role="log"
+          aria-label="Conversation"
+          aria-live="off"
+          aria-busy={isStreaming}
+          tabIndex={0}
+          className="min-h-0 flex-1 space-y-6 overflow-y-auto overflow-x-hidden p-4 focus-visible:outline-none sm:p-6"
+        >
+          {messages.length === 0 ? (
+            <div className="flex h-full min-h-[200px] flex-col items-center justify-center text-center">
+              <p className="font-[family-name:var(--font-display)] text-lg font-semibold text-[var(--foreground)]">
+                What are you working on?
+              </p>
+              <p className="mt-2 max-w-sm text-sm text-[var(--muted)]">
+                Everything stays on this computer. Nothing is sent to the
+                cloud.
+              </p>
+              <div className="mt-5 flex w-full max-w-md flex-col gap-2">
+                {STARTER_PROMPTS.map((prompt) => (
+                  <button
+                    key={prompt}
+                    type="button"
+                    onClick={() => {
+                      setInput(prompt);
+                      textareaRef.current?.focus();
+                    }}
+                    className="rounded-xl border border-[var(--line)] px-4 py-2.5 text-left text-sm text-[var(--silver)] transition hover:border-[var(--accent-border)] hover:bg-[var(--surface-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                  >
+                    {prompt}
+                  </button>
+                ))}
+              </div>
             </div>
-          ))
-        )}
+          ) : (
+            messages.map((message) => (
+              <div
+                key={message.id}
+                className={`group flex flex-col gap-1 ${
+                  message.role === "user" ? "items-end" : "items-start"
+                }`}
+              >
+                <div
+                  className={
+                    message.role === "user"
+                      ? "max-w-[85%] whitespace-pre-line [overflow-wrap:anywhere] rounded-2xl rounded-br-sm bg-[var(--foreground)] px-4 py-3 text-sm leading-6 text-[var(--background)]"
+                      : "max-w-[92%] rounded-2xl rounded-bl-sm border border-[var(--foreground)]/10 px-4 py-3 text-[var(--foreground)] sm:max-w-[85%]"
+                  }
+                >
+                  {message.role === "assistant" && message.status !== "complete" ? (
+                    <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
+                      {message.status === "interrupted"
+                        ? "Interrupted · partial response"
+                        : "Could not complete"}
+                    </p>
+                  ) : null}
+                  {message.content ? (
+                    message.role === "assistant" ? (
+                      <MarkdownContent text={message.content} />
+                    ) : (
+                      message.content
+                    )
+                  ) : message.role === "assistant" && isStreaming ? (
+                    <span className="text-sm text-[var(--muted)]">Thinking…</span>
+                  ) : null}
+                </div>
+                {message.content && !(isStreaming && message === messages[messages.length - 1]) ? (
+                  <CopyButton
+                    text={message.content}
+                    label={`Copy ${message.role === "user" ? "your" : "assistant"} message`}
+                    className="opacity-0 focus-visible:opacity-100 group-hover:opacity-100 group-focus-within:opacity-100"
+                  />
+                ) : null}
+              </div>
+            ))
+          )}
+        </div>
+        {showJump ? (
+          <button
+            type="button"
+            onClick={jumpToLatest}
+            className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full border border-[var(--accent-border)] bg-[var(--surface-deep)] px-4 py-1.5 text-xs text-[var(--foreground)] shadow-lg transition hover:bg-[var(--surface-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          >
+            Jump to latest ↓
+          </button>
+        ) : null}
       </div>
+      <p className="sr-only" role="status" aria-live="polite">
+        {isStreaming ? "Assistant is responding" : ""}
+      </p>
 
       {notice ? (
-        <div className="mx-6 mb-2 shrink-0 rounded-lg border border-[var(--line)] bg-[var(--surface-deep)]/60 px-4 py-3 text-sm text-[var(--muted)]">
+        <div role="status" className="mx-4 mb-2 shrink-0 rounded-lg border border-[var(--line)] bg-[var(--surface-deep)]/60 px-4 py-3 text-sm text-[var(--muted)] sm:mx-6">
           {notice}
         </div>
       ) : null}
 
       {error ? (
-        <div className="mx-6 mb-2 shrink-0 rounded-lg border border-[var(--accent)]/40 bg-[var(--accent)]/10 px-4 py-3 text-sm text-[var(--accent)]">
+        <div role="alert" className="mx-4 mb-2 shrink-0 rounded-lg border border-[var(--accent)]/40 bg-[var(--accent)]/10 px-4 py-3 text-sm text-[var(--accent)] sm:mx-6">
           {error}
         </div>
       ) : null}
@@ -456,12 +523,13 @@ export function ChatView({
             onChange={(event) => setInput(event.target.value)}
             onKeyDown={handleKeyDown}
             rows={1}
+            aria-label="Message"
             placeholder={
               debuggingMode
                 ? "Describe what should happen, what happens instead, or paste an error…"
                 : "Type a message… (Enter to send, Shift+Enter for a new line)"
             }
-            className="min-h-[2.75rem] max-h-[200px] flex-1 resize-none rounded-lg border border-[var(--foreground)]/15 bg-transparent px-4 py-3 text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)] focus:border-[var(--foreground)]/40"
+            className="min-h-[2.75rem] max-h-[200px] flex-1 resize-none rounded-lg border border-[var(--foreground)]/15 bg-transparent px-4 py-3 text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)] focus:border-[var(--accent-border)] focus-visible:ring-1 focus-visible:ring-[var(--accent-border)]"
           />
           {isStreaming ? (
             <button

@@ -172,7 +172,7 @@ export function ProjectExplorer({
   disabled,
   onSelectionChange,
 }: ProjectExplorerProps) {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [pickerSupported, setPickerSupported] = useState<boolean | null>(null);
   const [projectName, setProjectName] = useState<string | null>(null);
   const [tree, setTree] = useState<TreeNode[]>([]);
