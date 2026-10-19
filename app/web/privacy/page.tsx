@@ -91,6 +91,11 @@ export default function PrivacyPage() {
           <a href="https://vercel.com/legal/privacy-policy">Vercel&apos;s privacy policy</a> for how it handles them.
         </p>
         <p>
+          The Download button goes through a small redirect on this site that asks GitHub which release is newest and
+          then sends your browser to the file on GitHub, which serves the download. Your visit to that address is
+          handled by GitHub under its own privacy statement.
+        </p>
+        <p>
           If you email us, we receive your email address and message, and we use them only to reply. Links to GitHub
           take you to a service with its own privacy practices.
         </p>

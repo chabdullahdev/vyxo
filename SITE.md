@@ -728,6 +728,12 @@ prompt-injection isolation).
 
 ## Recent Changes
 
+- 2026-10-20: The Download buttons now start the file download directly. They go to
+  `/download` (`app/download/route.ts`), which looks up the newest GitHub release and
+  redirects to its Apple Silicon dmg (`lib/site/download.ts` only accepts files hosted
+  under this project's own release downloads). Falls back to the releases page if GitHub
+  is unreachable. Cached for 10 minutes, so a new release is picked up with no site change.
+
 - 2026-10-20: Accuracy and signing pass.
   - **Research can only fetch plain page addresses.** Fetched URLs come solely from
     the list the user types; the question and model output never become requests

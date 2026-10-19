@@ -4,10 +4,10 @@ import { DataFlow } from "@/components/web/DataFlow";
 import { RECOMMENDED_MODEL } from "@/lib/models/recommended";
 import {
   APPLE_OPEN_APPS_URL,
+  DOWNLOAD_URL,
   ISSUES_URL,
   OLLAMA_URL,
   PLATFORM_NOTE,
-  RELEASES_URL,
   REPO_URL,
 } from "@/lib/site/links";
 
@@ -180,7 +180,7 @@ export default function WebPage() {
             <div className="flex flex-col gap-3 lg:col-span-5 lg:col-start-8 lg:items-end lg:justify-end">
               <div className="flex flex-wrap gap-3">
                 <a
-                  href={RELEASES_URL}
+                  href={DOWNLOAD_URL}
                   className="rounded-full bg-[var(--foreground)] px-6 py-3.5 text-sm font-medium text-[var(--background)] transition hover:bg-[var(--silver)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
                 >
                   Download for Mac
@@ -393,7 +393,7 @@ export default function WebPage() {
           </h2>
           <div className="mt-12 flex flex-wrap items-center gap-x-8 gap-y-4">
             <a
-              href={RELEASES_URL}
+              href={DOWNLOAD_URL}
               className="rounded-full bg-[var(--foreground)] px-7 py-4 text-sm font-medium text-[var(--background)] transition hover:bg-[var(--silver)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
             >
               Download for Mac
