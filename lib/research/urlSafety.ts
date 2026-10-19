@@ -120,6 +120,10 @@ function looksLikeIpLiteral(host: string): boolean {
   return parseIpv4(host) !== null;
 }
 
+const MAX_RESEARCH_PATH_CHARS = 200;
+/** Letters, digits, and the punctuation real documentation paths use. No %-encoding, spaces, or ;params. */
+const SAFE_PATH = /^\/[A-Za-z0-9\-._~/:@+]*$/;
+
 export function normalizeResearchUrl(
   input: unknown,
   allowedHosts: readonly string[] = researchAllowedHosts(),
@@ -155,6 +159,15 @@ export function normalizeResearchUrl(
   }
   if (!hostMatchesAllowlist(host, allowedHosts)) {
     return { ok: false, error: "That host is not on the approved documentation allowlist." };
+  }
+
+  // Only a plain page address may leave the machine. A query string or an
+  // encoded path could smuggle text (a search term, a name) to the remote site.
+  if (trimmed.includes("?") || url.search !== "") {
+    return { ok: false, error: "Source URLs can't contain a query string (anything after a ?). Use the plain page address." };
+  }
+  if (trimmed.includes("\\") || url.pathname.length > MAX_RESEARCH_PATH_CHARS || !SAFE_PATH.test(url.pathname)) {
+    return { ok: false, error: "That page address has unusual characters. Use the plain documentation page address." };
   }
 
   url.hash = "";

@@ -46,7 +46,7 @@ export function LegalSection({
   return (
     <section>
       <h2 className={`${display} flex items-baseline gap-4 text-xl font-medium tracking-[-0.02em]`}>
-        <span className="font-mono text-xs text-[var(--accent-text)]">{String(number).padStart(2, "0")}</span>
+        <span aria-hidden="true" className="font-mono text-xs text-[var(--accent-text)]">{String(number).padStart(2, "0")}</span>
         {heading}
       </h2>
       <div className="mt-4 space-y-4 text-[15px] leading-7 text-[var(--muted)] [&_a]:text-[var(--accent-text)] [&_a]:underline [&_a]:underline-offset-4 [&_li]:pl-1 [&_strong]:font-medium [&_strong]:text-[var(--silver)] [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-5 [&_ul]:marker:text-[var(--muted)]">

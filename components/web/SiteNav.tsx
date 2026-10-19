@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import logoWhite from "../../public/brand/logo-white.svg";
-import { RELEASES_URL, REPO_URL } from "@/lib/site/links";
+import { PLATFORM_NOTE, RELEASES_URL, REPO_URL } from "@/lib/site/links";
 
 const links = [
   { label: "Who it's for", href: "/web#who" },
@@ -50,6 +50,8 @@ export function SiteNav() {
           </a>
           <a
             href={RELEASES_URL}
+            title={PLATFORM_NOTE}
+            aria-label={`Download. ${PLATFORM_NOTE}`}
             className="rounded-full bg-[var(--foreground)] px-4 py-2 font-medium text-[var(--background)] transition hover:bg-[var(--silver)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
           >
             Download

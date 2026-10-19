@@ -51,9 +51,12 @@ export default function PrivacyPage() {
       <LegalSection number={3} heading="The only times the app uses the internet">
         <ul>
           <li>
-            <strong>Research.</strong> When you ask the Research tool to read a public web page, the app fetches that
-            page. The website you fetch can see your IP address and that a request was made, as with any browser. The
-            tool only fetches public addresses you request and never your private files.
+            <strong>Research.</strong> When you run the Research tool, the app makes a plain HTTPS request for each
+            documentation page you list. It only accepts pages from a short built-in list of sites (React, Next.js,
+            MDN, Node.js, Python docs, npm docs, TypeScript, Tailwind CSS, and Ollama), and you can add more yourself
+            with a setting. Those sites can see your IP address and which page was requested, as with any browser.
+            The request contains only the page address: your research question and your files stay on your computer
+            and go only to your local model. Redirects are not followed.
           </li>
           <li>
             <strong>Update checks.</strong> The desktop app periodically asks GitHub Releases whether a newer version

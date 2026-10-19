@@ -1,7 +1,15 @@
 import type { Metadata } from "next";
 import { AppWindow } from "@/components/web/AppWindow";
 import { DataFlow } from "@/components/web/DataFlow";
-import { ISSUES_URL, OLLAMA_URL, RELEASES_URL, REPO_URL } from "@/lib/site/links";
+import { RECOMMENDED_MODEL } from "@/lib/models/recommended";
+import {
+  APPLE_OPEN_APPS_URL,
+  ISSUES_URL,
+  OLLAMA_URL,
+  PLATFORM_NOTE,
+  RELEASES_URL,
+  REPO_URL,
+} from "@/lib/site/links";
 
 const title = "VYXO: the AI that stays in the room";
 const description =
@@ -44,9 +52,9 @@ const audiences = [
 ];
 
 const comparison = [
-  ["Where your text goes", "A company's servers", "Your computer only"],
+  ["Where your messages go", "A company's servers", "Your computer only. Research and update checks never carry them"],
   ["Account", "Required", "None"],
-  ["Works offline", "No", "Yes, once a model is installed"],
+  ["Works offline", "No", "Chat does, once a model is installed. Research needs the internet"],
   ["Who can read your history", "The provider, under its policy", "Whoever can open your computer"],
   ["Cost", "Subscription or per message", "Free. You bring the hardware"],
   ["Strongest models", "Larger, often smarter", "Smaller. Good, not the best available"],
@@ -58,7 +66,7 @@ const capabilities = [
   ["Edits you approve", "Proposed changes arrive as a diff. Nothing is written until you say so, and it can be undone."],
   ["Agents", "A planner splits a large request into small tasks for specialists that run one at a time."],
   ["Memory", "Facts the assistant may read. Only you can add, change, or remove them."],
-  ["Research", "Summaries of public documentation pages, with citations and a plain statement of limits."],
+  ["Research", "Summaries of documentation pages from a short list of public sites (React, MDN, Node.js and a few others), with citations and a plain statement of limits. It is the one feature that fetches from the web, and it never sends your messages."],
 ];
 
 const steps = [
@@ -78,14 +86,70 @@ const steps = [
   {
     title: "Download a model",
     body: "One command, once. Any model Ollama supports will work. Expect a few gigabytes.",
-    code: "ollama pull qwen3:8b",
+    code: `ollama pull ${RECOMMENDED_MODEL}`,
   },
   {
     title: "Open VYXO",
-    body: "Download the Mac app, or run it from source. VYXO finds your models by itself and tells you if a step is missing.",
+    body: "Download the Mac app (macOS on Apple Silicon), or run it from source. VYXO finds your models by itself and tells you if a step is missing. The first launch needs one extra approval, shown below.",
     code: null,
   },
 ];
+
+function FirstLaunch() {
+  const step = "marker:font-mono marker:text-xs marker:text-[var(--accent-text)]";
+  return (
+    <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-deep)] p-5 sm:p-6">
+      <h3 className={`${display} text-lg font-medium tracking-[-0.02em]`}>Opening VYXO the first time</h3>
+      <p className="mt-3 text-[15px] leading-7 text-[var(--muted)]">
+        VYXO is a free, open-source project from one developer, and it is not signed with a paid Apple Developer
+        certificate ($99 a year), so macOS warns you before the first launch. The complete source is on{" "}
+        <a href={REPO_URL} className="text-[var(--accent-text)] underline underline-offset-4">
+          GitHub
+        </a>
+        , so you can read exactly what you are installing. You only do this once.
+      </p>
+
+      <h4 className="mt-6 font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--silver)]">
+        macOS 15 Sequoia or later
+      </h4>
+      <ol className={`mt-3 list-decimal space-y-2 pl-6 text-[15px] leading-7 text-[var(--muted)] ${step}`}>
+        <li className="pl-2">Drag VYXO to your Applications folder, then double-click it. macOS blocks it with a warning. Close the warning.</li>
+        <li className="pl-2">
+          Open <strong className="font-medium text-[var(--silver)]">System Settings</strong>, choose{" "}
+          <strong className="font-medium text-[var(--silver)]">Privacy &amp; Security</strong>, and scroll down to Security.
+        </li>
+        <li className="pl-2">
+          Click <strong className="font-medium text-[var(--silver)]">Open Anyway</strong> next to the message about VYXO and
+          enter your login password. The button appears for about an hour after your attempt to open the app.
+        </li>
+        <li className="pl-2">Confirm by clicking Open. From then on VYXO opens like any other app.</li>
+      </ol>
+
+      <h4 className="mt-6 font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--silver)]">
+        macOS 14 Sonoma or earlier
+      </h4>
+      <p className="mt-3 text-[15px] leading-7 text-[var(--muted)]">
+        In Finder, Control-click VYXO, choose <strong className="font-medium text-[var(--silver)]">Open</strong>, then click
+        Open again. (Newer macOS removed this shortcut, which is why the steps above differ.)
+      </p>
+
+      <h4 className="mt-6 font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--silver)]">
+        Or use Terminal
+      </h4>
+      <pre className="mt-3 overflow-x-auto rounded-lg border border-[var(--line)] bg-[var(--background)] px-4 py-3 font-mono text-[13px] text-[var(--silver)]">
+        <span className="select-none text-[var(--muted)]">$ </span>
+        xattr -dr com.apple.quarantine /Applications/VYXO.app
+      </pre>
+      <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
+        This removes the download flag so macOS stops asking. Apple describes the standard route in{" "}
+        <a href={APPLE_OPEN_APPS_URL} className="text-[var(--accent-text)] underline underline-offset-4">
+          Safely open apps on your Mac
+        </a>
+        .
+      </p>
+    </div>
+  );
+}
 
 export default function WebPage() {
   return (
@@ -110,8 +174,8 @@ export default function WebPage() {
             style={{ "--delay": "0.2s" } as React.CSSProperties}
           >
             <p className="max-w-xl text-lg leading-8 text-[var(--silver)] lg:col-span-6">
-              VYXO is a workspace for chat, projects, and research that runs on your own computer. What you type and
-              what you open is never uploaded, because there is no server for it to reach.
+              Your chats and files never leave your computer. Research and update checks are the only features that go
+              online, and they never send them.
             </p>
             <div className="flex flex-col gap-3 lg:col-span-5 lg:col-start-8 lg:items-end lg:justify-end">
               <div className="flex flex-wrap gap-3">
@@ -128,8 +192,9 @@ export default function WebPage() {
                   Read the source
                 </a>
               </div>
-              <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">
-                Apple Silicon · Free · MIT license
+              <p className="max-w-[30ch] text-xs leading-5 text-[var(--silver)] lg:text-right">
+                {PLATFORM_NOTE}
+                <span className="block text-[var(--muted)]">Free, MIT license.</span>
               </p>
             </div>
           </div>
@@ -148,7 +213,7 @@ export default function WebPage() {
         <ul
           className={`${wrap} grid grid-cols-2 gap-y-px py-6 font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--muted)] sm:grid-cols-4`}
         >
-          {["No account", "No telemetry", "Works offline", "Open source, MIT"].map((item) => (
+          {["No account", "No telemetry", "Chat works offline", "Open source, MIT"].map((item) => (
             <li key={item} className="flex items-center gap-3 py-2">
               <span aria-hidden="true" className="h-1 w-1 bg-[var(--accent)]" />
               {item}
@@ -222,18 +287,20 @@ export default function WebPage() {
           >
             What it <span className={serif}>does.</span>
           </h2>
-          <ol className="lg:col-span-8">
+          <ul className="lg:col-span-8">
             {capabilities.map(([name, body], index) => (
               <li
                 key={name}
                 className="web-reveal grid grid-cols-[3rem_1fr] gap-x-4 border-t border-[var(--line)] py-6 first:border-t-0 first:pt-0 sm:grid-cols-[3rem_14rem_1fr]"
               >
-                <span className="font-mono text-xs text-[var(--accent-text)]">{String(index + 1).padStart(2, "0")}</span>
+                <span aria-hidden="true" className="font-mono text-xs text-[var(--accent-text)]">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
                 <h3 className={`${display} text-lg font-medium tracking-[-0.01em]`}>{name}</h3>
                 <p className="col-start-2 mt-1 text-[15px] leading-7 text-[var(--muted)] sm:col-start-3 sm:mt-0">{body}</p>
               </li>
             ))}
-          </ol>
+          </ul>
         </div>
       </section>
 
@@ -286,10 +353,14 @@ export default function WebPage() {
           >
             Running in <span className={serif}>ten minutes.</span>
           </h2>
-          <ol className="space-y-10 lg:col-span-7 lg:col-start-6">
+          <div className="min-w-0 lg:col-span-7 lg:col-start-6">
+          <ol className="space-y-10">
             {steps.map((step, index) => (
               <li key={step.title} className="web-reveal grid grid-cols-[3rem_1fr] gap-x-4">
-                <span className={`${display} text-3xl font-medium leading-none text-[var(--accent-text)]`}>
+                <span
+                  aria-hidden="true"
+                  className={`${display} text-3xl font-medium leading-none text-[var(--accent-text)]`}
+                >
                   {index + 1}
                 </span>
                 <div>
@@ -305,6 +376,10 @@ export default function WebPage() {
               </li>
             ))}
           </ol>
+          <div className="web-reveal mt-10">
+            <FirstLaunch />
+          </div>
+          </div>
         </div>
       </section>
 
@@ -330,9 +405,10 @@ export default function WebPage() {
               Found a problem? Tell us
             </a>
           </div>
-          <p className="mt-6 max-w-lg text-sm leading-6 text-[var(--muted)]">
-            The Mac app is not yet signed by Apple, so macOS asks you to confirm the first launch (right-click the
-            app, choose Open), and updates open the download page instead of installing in place.
+          <p className="mt-6 max-w-lg text-sm leading-6 text-[var(--silver)]">{PLATFORM_NOTE}</p>
+          <p className="mt-2 max-w-lg text-sm leading-6 text-[var(--muted)]">
+            The first launch needs one approval because the app is not signed with a paid Apple certificate. The steps
+            are in <a href="#start" className="underline underline-offset-4 hover:text-[var(--foreground)]">Get started</a>.
           </p>
         </div>
       </section>

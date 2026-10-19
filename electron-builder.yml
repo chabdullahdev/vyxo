@@ -1,5 +1,6 @@
 appId: com.vyxo.app
 productName: VYXO
+afterSign: desktop/adhoc-sign.cjs
 directories:
   buildResources: desktop/resources
   output: release

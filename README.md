@@ -44,9 +44,22 @@ installed, the app tells you what to do.
 
 ### Download the Mac app
 
-Apple Silicon builds are attached to each
-[release](https://github.com/chabdullahdev/vyxo/releases/latest). Builds are not
-yet signed by Apple, so on first launch right-click the app and choose **Open**.
+macOS on Apple Silicon only; Windows and Intel Macs are not supported yet.
+Builds are attached to each
+[release](https://github.com/chabdullahdev/vyxo/releases/latest).
+
+The app is not signed with a paid Apple Developer certificate, so macOS asks you
+to approve the first launch (once):
+
+- **macOS 15 Sequoia or later:** double-click VYXO and close the warning. Open
+  **System Settings → Privacy & Security**, scroll to Security, click **Open
+  Anyway**, and enter your password. The button is available for about an hour
+  after you try to open the app.
+- **macOS 14 Sonoma or earlier:** Control-click VYXO, choose **Open**, then Open.
+- **Terminal alternative:** `xattr -dr com.apple.quarantine /Applications/VYXO.app`
+
+The release build is ad-hoc signed (free) so macOS reports "unidentified
+developer" rather than "damaged".
 
 **Updates.** The app checks GitHub Releases shortly after launch and every six
 hours, and asks before doing anything. When the app is signed with an Apple
@@ -66,8 +79,13 @@ Set `VYXO_DISABLE_UPDATES=1` to turn checking off.
 - Project folders are read-only. File and credential checks are defensive
   filters, not a guarantee; don't connect folders holding secrets you can't
   afford to expose to a local model.
-- Research only fetches public pages, blocks private and loopback addresses,
-  refuses redirects, and bounds response size.
+- Research is the only feature that fetches web pages. It accepts only pages
+  from a short allowlist of documentation sites (extend it with
+  `RESEARCH_ALLOWED_HOSTS`), blocks private and loopback addresses, refuses
+  redirects, and bounds response size. The request carries only the page
+  address; your question and files go to the local model alone.
+- The desktop app checks GitHub Releases for updates. Set
+  `VYXO_DISABLE_UPDATES=1` to turn that off.
 
 See [SECURITY.md](SECURITY.md) to report a vulnerability.
 

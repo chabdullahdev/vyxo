@@ -41,12 +41,14 @@ export function DataFlow() {
 
       <div className="flex flex-col justify-center rounded-2xl border border-[var(--line)] px-6 py-6 opacity-70">
         <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--muted)]">The internet</div>
-        <div className="mt-2 font-[family-name:var(--font-display)] text-base">Your text never goes here.</div>
+        <div className="mt-2 font-[family-name:var(--font-display)] text-base">Your messages and files never go here.</div>
       </div>
 
       <figcaption className="text-sm leading-6 text-[var(--muted)] lg:col-span-3">
-        Two things do use the network, and both are yours to control: the Research tool fetches public pages you ask
-        for, and the app checks GitHub for new versions (you can turn that off).
+        Two features do reach the internet. <strong className="font-medium text-[var(--silver)]">Research</strong>{" "}
+        fetches documentation pages from a short list of public sites (React, MDN, Node.js and a few others) when you
+        run it. The app also checks GitHub Releases for new versions, which you can turn off. Neither one sends your
+        messages or files.
       </figcaption>
     </figure>
   );

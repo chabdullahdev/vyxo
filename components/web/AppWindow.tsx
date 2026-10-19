@@ -1,5 +1,6 @@
 import Image from "next/image";
 import logoWhite from "../../public/brand/logo-white.svg";
+import { RECOMMENDED_MODEL } from "@/lib/models/recommended";
 
 const nav = ["Chat", "Agents", "Projects", "Memory", "Research", "Settings"];
 
@@ -19,7 +20,7 @@ export function AppWindow() {
         </span>
         <span className="flex items-center gap-1.5 rounded-full border border-[var(--line)] px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-          <span className="hidden text-[var(--foreground)] sm:inline">qwen3.5:9b</span>
+          <span className="hidden text-[var(--foreground)] sm:inline">{RECOMMENDED_MODEL}</span>
         </span>
       </div>
 
@@ -78,10 +79,11 @@ export function AppWindow() {
         </div>
       </div>
 
-      <div className="flex items-center justify-between border-t border-[var(--line)] bg-[var(--background)] px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--muted)]">
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1 border-t border-[var(--line)] bg-[var(--background)] px-4 py-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--muted)]">
         <span>Running on this computer</span>
         <span>
-          Outbound requests while chatting: <span className="text-[var(--foreground)]">none</span>
+          Outbound requests while chatting: <span className="text-[var(--foreground)]">none</span> — unless you use
+          Research
         </span>
       </div>
     </div>

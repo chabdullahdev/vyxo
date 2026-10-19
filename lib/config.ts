@@ -1,7 +1,9 @@
+import { RECOMMENDED_MODEL } from "./models/recommended.ts";
+
 export const OLLAMA_BASE_URL =
   process.env.OLLAMA_BASE_URL ?? "http://127.0.0.1:11434";
 
-export const DEFAULT_MODEL = process.env.DEFAULT_MODEL ?? "qwen3:8b";
+export const DEFAULT_MODEL = process.env.DEFAULT_MODEL ?? RECOMMENDED_MODEL;
 
 export const MODEL_CONTEXT_TOKENS = 8192;
 

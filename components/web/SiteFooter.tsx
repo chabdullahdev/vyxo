@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import logoWhite from "../../public/brand/logo-white.svg";
-import { CONTACT_EMAIL, ISSUES_URL, RELEASES_URL, REPO_URL } from "@/lib/site/links";
+import { CONTACT_EMAIL, ISSUES_URL, PLATFORM_NOTE, RELEASES_URL, REPO_URL } from "@/lib/site/links";
 
 function Column({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -27,6 +27,7 @@ export function SiteFooter() {
         </div>
         <Column title="Product">
           <li><a className={linkClass} href={RELEASES_URL}>Download</a></li>
+          <li className="max-w-[22ch] text-xs leading-5 text-[var(--muted)]">{PLATFORM_NOTE}</li>
           <li><a className={linkClass} href={REPO_URL}>Source code</a></li>
           <li><a className={linkClass} href={ISSUES_URL}>Report an issue</a></li>
         </Column>
