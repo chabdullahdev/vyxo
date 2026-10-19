@@ -449,6 +449,7 @@ export function ChatView({
                 }`}
               >
                 <div
+                  data-message-role={message.role}
                   className={
                     message.role === "user"
                       ? "max-w-[85%] whitespace-pre-line [overflow-wrap:anywhere] rounded-2xl rounded-br-sm bg-[var(--foreground)] px-4 py-3 text-sm leading-6 text-[var(--background)]"

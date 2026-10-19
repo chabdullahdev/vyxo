@@ -210,7 +210,7 @@ async function waitForAssistantAnswer(cdp) {
   let lastState = null;
   while (Date.now() < deadline) {
     lastState = await evaluate(cdp, `(() => {
-      const answers = Array.from(document.querySelectorAll('.whitespace-pre-wrap'));
+      const answers = Array.from(document.querySelectorAll('[data-message-role="assistant"]'));
       const last = answers.at(-1)?.textContent?.trim() ?? '';
       const alerts = Array.from(document.querySelectorAll('div')).filter((element) =>
         typeof element.className === 'string' &&
@@ -416,7 +416,7 @@ async function main() {
 
     await submitChat(cdp, "Give a detailed debugging walkthrough with multiple causes and manual checks for a synthetic React state issue.");
     await waitFor(cdp, `Array.from(document.querySelectorAll('button')).some((button) => button.textContent?.trim() === 'Stop')`, "the Stop control");
-    await waitFor(cdp, `(() => { const items = Array.from(document.querySelectorAll('.whitespace-pre-wrap')); const last = items.at(-1)?.textContent?.trim() ?? ''; return last.length > 0 && last !== 'Thinking…'; })()`, "the first streamed text before Stop", 30_000);
+    await waitFor(cdp, `(() => { const items = Array.from(document.querySelectorAll('[data-message-role="assistant"]')); const last = items.at(-1)?.textContent?.trim() ?? ''; return last.length > 0 && last !== 'Thinking…'; })()`, "the first streamed text before Stop", 30_000);
     await wait(200);
     await clickButton(cdp, "Stop");
     await waitFor(cdp, `Array.from(document.querySelectorAll('button')).some((button) => button.textContent?.trim() === 'Send') && !Array.from(document.querySelectorAll('button')).some((button) => button.textContent?.trim() === 'Stop')`, "the chat to return to idle after Stop", 10_000);

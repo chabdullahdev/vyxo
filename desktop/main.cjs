@@ -52,7 +52,7 @@ if (singleInstanceLock) {
 
 function inheritedRuntimeEnvironment() {
   const environment = {};
-  for (const key of ["HOME", "PATH", "TMPDIR", "TMP", "TEMP", "LANG", "LC_ALL", "USER", "LOGNAME"]) {
+  for (const key of ["HOME", "PATH", "TMPDIR", "TMP", "TEMP", "LANG", "LC_ALL", "USER", "LOGNAME", "OLLAMA_BASE_URL", "DEFAULT_MODEL", "VYXO_DATA_DIR"]) {
     const value = process.env[key];
     if (typeof value === "string") environment[key] = value;
   }

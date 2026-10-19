@@ -28,10 +28,10 @@ test("dangerous or malformed links are never opened", () => {
 
 test("only a real Developer ID signature allows in-place updates", () => {
   assert.equal(
-    isDeveloperSigned("Identifier=com.shipstudio.ai\nAuthority=Developer ID Application: Jane (ABCDE12345)\n"),
+    isDeveloperSigned("Identifier=com.vyxo.app\nAuthority=Developer ID Application: Jane (ABCDE12345)\n"),
     true,
   );
-  assert.equal(isDeveloperSigned("Identifier=com.shipstudio.ai\nSignature=adhoc\n"), false);
+  assert.equal(isDeveloperSigned("Identifier=com.vyxo.app\nSignature=adhoc\n"), false);
   assert.equal(isDeveloperSigned("code object is not signed at all"), false);
   assert.equal(isDeveloperSigned(""), false);
 });

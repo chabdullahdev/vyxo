@@ -6,19 +6,14 @@ import {
   rename,
   unlink,
 } from "node:fs/promises";
-import { homedir } from "node:os";
 import { basename, dirname, join } from "node:path";
+import { prepareDataDirectory } from "../storage/location.ts";
 
 export const SCHEMA_VERSION = 1;
 
 export const DEFAULT_MAX_CONTENT_LENGTH = 10_000;
 
-export const DEFAULT_STORAGE_DIR = join(
-  homedir(),
-  "Library",
-  "Application Support",
-  "ShipStudioAI",
-);
+export const DEFAULT_STORAGE_DIR = prepareDataDirectory();
 
 export const DEFAULT_STORAGE_PATH = join(DEFAULT_STORAGE_DIR, "memories.json");
 

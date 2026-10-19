@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useModelCatalog } from "@/components/workspace/useModelCatalog";
+import { useState } from "react";
+import { MODEL_CHANGED_EVENT, useModelCatalog } from "@/components/workspace/useModelCatalog";
 import { CopyButton } from "@/components/chat/CopyButton";
 
 function Command({ command }: { command: string }) {
@@ -9,6 +10,56 @@ function Command({ command }: { command: string }) {
     <div className="mt-2 flex items-center justify-between gap-3 rounded-lg border border-[var(--line)] bg-[var(--surface-deep)] px-3 py-2">
       <code className="min-w-0 truncate font-mono text-xs text-[var(--silver)]">{command}</code>
       <CopyButton text={command} label={`Copy command ${command}`} />
+    </div>
+  );
+}
+
+function UseModelButtons({ models }: { models: string[] }) {
+  const [saving, setSaving] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const choose = async (model: string) => {
+    setSaving(model);
+    setError(null);
+    try {
+      const response = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ selectedModel: model }),
+      });
+      if (!response.ok) {
+        const data = (await response.json().catch(() => null)) as { error?: string } | null;
+        setError(data?.error ?? "Could not change the model.");
+        return;
+      }
+      window.dispatchEvent(new Event(MODEL_CHANGED_EVENT));
+    } catch {
+      setError("Couldn't reach the local server.");
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  return (
+    <div className="mt-3">
+      <div className="flex flex-wrap gap-2">
+        {models.slice(0, 8).map((model) => (
+          <button
+            key={model}
+            type="button"
+            disabled={saving !== null}
+            onClick={() => void choose(model)}
+            className="rounded-lg bg-[var(--foreground)] px-3 py-1.5 text-xs font-medium text-[var(--background)] transition hover:bg-[var(--silver)] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          >
+            {saving === model ? "Saving…" : `Use ${model}`}
+          </button>
+        ))}
+      </div>
+      {error ? (
+        <p role="alert" className="mt-2 text-xs text-[var(--accent-text)]">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -60,17 +111,20 @@ export function SetupGuide() {
       </>
     );
   } else {
-    title = "Pick an installed model";
+    title = "Pick a model to use";
     body = (
       <div>
         <p>
-          The saved model <strong>{catalog.selectedModel}</strong> isn&apos;t installed. Choose
-          one of your installed models in{" "}
+          The saved model <strong>{catalog.selectedModel}</strong> isn&apos;t installed, but
+          you have {catalog.models.length === 1 ? "one model" : `${catalog.models.length} models`}{" "}
+          ready. Choose one (you can change it any time in{" "}
           <Link href="/settings" className="text-[var(--accent-text)] underline underline-offset-2">
             Settings
           </Link>
-          , or install it:
+          ):
         </p>
+        <UseModelButtons models={catalog.models} />
+        <p className="mt-4 text-[var(--muted)]">Or install the saved one:</p>
         <Command command={`ollama pull ${catalog.selectedModel}`} />
       </div>
     );
