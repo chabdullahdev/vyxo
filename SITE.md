@@ -728,6 +728,20 @@ prompt-injection isolation).
 
 ## Recent Changes
 
+- 2026-10-20: **In-app updates that install themselves** (0.2.1). Builds without a
+  paid Apple certificate cannot use macOS's updater, so `desktop/inplace-update.cjs`
+  replaces the app itself: it downloads the release zip (GitHub hosts only, size and
+  SHA-512 checked), unpacks it, verifies the bundle ID, version, processor, and code
+  signature, stages it beside the installed app, and swaps the two with plain renames
+  after VYXO quits. The old app is kept as a hidden backup until the new one starts,
+  and a failure at any step restores or leaves the old app. Files downloaded this way
+  have no quarantine flag, so the updated app opens without the first-launch warning.
+  Tested with real builds by `desktop/update-e2e.cjs` (normal update and a
+  deliberately corrupted download). Apps running from a disk image or a read-only
+  location are told to move to Applications first. Versions before 0.2.1 cannot do
+  this, so 0.2.0 to 0.2.1 is a one-time manual install. The smoke test now uses its own
+  profile folder so it works while the real app is open.
+
 - 2026-10-20: The Download buttons now start the file download directly. They go to
   `/download` (`app/download/route.ts`), which looks up the newest GitHub release and
   redirects to its Apple Silicon dmg (`lib/site/download.ts` only accepts files hosted

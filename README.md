@@ -64,9 +64,16 @@ The release build is ad-hoc signed (free) so macOS reports "unidentified
 developer" rather than "damaged".
 
 **Updates.** The app checks GitHub Releases shortly after launch and every six
-hours, and asks before doing anything. When the app is signed with an Apple
-Developer ID it downloads and installs the update in place and restarts; macOS
-only allows that for signed apps. Unsigned builds instead open the download page.
+hours, and asks before doing anything. Choose **Update now** and VYXO downloads the
+new version, checks its checksum, signature, version, and processor type, then
+replaces itself and restarts. Your conversations, projects, and settings live
+outside the app and are kept. The old app is held as a hidden backup until the new
+one has started, and any failure leaves the installed app untouched. This works
+without a paid Apple certificate because VYXO replaces its own app file instead of
+using macOS's built-in updater (which requires one). It needs VYXO to be installed
+in a folder you can write to, such as Applications; if it is running from the disk
+image, it asks you to move it first. Versions before 0.2.1 can't update themselves
+this way, so moving from 0.2.0 to 0.2.1 is a one-time manual install.
 Set `VYXO_DISABLE_UPDATES=1` to turn checking off.
 
 ## Privacy, concretely

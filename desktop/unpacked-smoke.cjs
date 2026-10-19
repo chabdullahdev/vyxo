@@ -284,6 +284,8 @@ async function main() {
   const child = spawn(
     appExecutable,
     [
+      // Own profile folder, so the check works even while the real VYXO is open (it holds the single-instance lock).
+      `--user-data-dir=${fs.mkdtempSync(path.join(os.tmpdir(), "shipstudio-unpacked-smoke-profile-"))}`,
       `--remote-debugging-port=${debugPort}`,
       "--remote-debugging-address=127.0.0.1",
       `--remote-allow-origins=http://127.0.0.1:${debugPort}`,

@@ -8,6 +8,7 @@ files:
   - desktop/main.cjs
   - desktop/links.cjs
   - desktop/updater.cjs
+  - desktop/inplace-update.cjs
   - package.json
 extraResources:
   - from: .next-desktop/standalone
