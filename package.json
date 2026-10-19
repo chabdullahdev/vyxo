@@ -1,6 +1,25 @@
 {
-  "name": "static-marketing-site-starter",
+  "name": "vyxo",
   "version": "0.1.0",
+  "description": "A private, local-first AI workspace: chat, projects, memory, and agents powered by models running on your own computer.",
+  "license": "MIT",
+  "author": "Muhammad Abdullah",
+  "homepage": "https://github.com/chabdullahdev/ai#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chabdullahdev/ai.git"
+  },
+  "bugs": {
+    "url": "https://github.com/chabdullahdev/ai/issues"
+  },
+  "keywords": [
+    "ollama",
+    "local-llm",
+    "privacy",
+    "ai-workspace",
+    "electron",
+    "nextjs"
+  ],
   "private": true,
   "main": "desktop/main.cjs",
   "scripts": {

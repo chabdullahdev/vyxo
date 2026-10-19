@@ -11,6 +11,7 @@ import logoWhite from "../../public/brand/logo-white.svg";
 
 type IconName =
   | "agents"
+  | "about"
   | "chat"
   | "folder"
   | "memory"
@@ -36,6 +37,7 @@ const workspaceNavigation: NavigationItem[] = [
 const systemNavigation: NavigationItem[] = [
   { label: "Research", href: "/research", icon: "research" },
   { label: "Settings", href: "/settings", icon: "settings" },
+  { label: "About", href: "/about", icon: "about" },
 ];
 
 function Icon({ name, className = "h-4 w-4" }: { name: IconName; className?: string }) {
@@ -94,6 +96,13 @@ function Icon({ name, className = "h-4 w-4" }: { name: IconName; className?: str
           <circle cx="9" cy="6.5" r="1.5" fill="currentColor" stroke="none" />
           <circle cx="15" cy="12" r="1.5" fill="currentColor" stroke="none" />
           <circle cx="11" cy="17.5" r="1.5" fill="currentColor" stroke="none" />
+        </svg>
+      );
+    case "about":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="8" />
+          <path d="M12 11v5M12 8h.01" />
         </svg>
       );
     case "plus":
@@ -162,7 +171,14 @@ function navigationLabel(pathname: string): string {
   return item?.label ?? "Workspace";
 }
 
-export function WorkspaceShell({ children }: { children: React.ReactNode }) {
+export function WorkspaceShell({
+  children,
+  bare = false,
+}: {
+  children: React.ReactNode;
+  /** Public site mode: render the page alone, without the app sidebar and header. */
+  bare?: boolean;
+}) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -178,6 +194,14 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [mobileOpen]);
+
+  if (bare) {
+    return (
+      <main id="main" className="min-h-screen bg-[var(--background)] px-4 py-8 text-[var(--foreground)] sm:px-6 lg:px-8">
+        {children}
+      </main>
+    );
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-[var(--background)] text-[var(--foreground)]">

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import { Space_Grotesk, DM_Sans } from "next/font/google";
 import "./globals.css";
@@ -18,8 +18,13 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "VYXO",
+  title: { default: "VYXO", template: "%s" },
   description: "A private, local-first AI workspace.",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0b0c10",
+  colorScheme: "dark",
 };
 
 export default async function RootLayout({
@@ -34,7 +39,7 @@ export default async function RootLayout({
   return (
     <html lang="en" className={`${spaceGrotesk.variable} ${dmSans.variable}`}>
       <body className="font-[family-name:var(--font-body)] antialiased">
-        <WorkspaceShell>{children}</WorkspaceShell>
+        <WorkspaceShell bare={process.env.VYXO_PUBLIC_SITE === "1"}>{children}</WorkspaceShell>
         <AgentationProvider />
       </body>
     </html>
