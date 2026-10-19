@@ -2,6 +2,8 @@ export type PublicRouteDecision = "allow" | "home" | "block";
 
 const ALLOWED_EXACT = new Set([
   "/web",
+  "/web/terms",
+  "/web/privacy",
   "/favicon.ico",
   "/icon.png",
   "/apple-icon.png",

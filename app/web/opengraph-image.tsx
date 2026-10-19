@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { ImageResponse } from "next/og";
 
-export const alt = "VYXO: an AI workspace that never leaves your computer";
+export const alt = "VYXO: the AI that stays in the room";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -43,14 +43,13 @@ export default async function OpenGraphImage() {
             style={{
               display: "flex",
               flexDirection: "column",
-              fontSize: 84,
-              lineHeight: 1.04,
+              fontSize: 132,
+              lineHeight: 1,
               letterSpacing: "-0.04em",
             }}
           >
-            <span>An AI workspace that</span>
-            <span>never leaves</span>
-            <span style={{ color: VIOLET }}>your computer.</span>
+            <span>The AI that stays</span>
+            <span style={{ color: VIOLET }}>in the room.</span>
           </div>
         </div>
 
@@ -65,9 +64,9 @@ export default async function OpenGraphImage() {
         >
           <span>Private</span>
           <span style={{ color: VIOLET }}>·</span>
-          <span>Runs on Ollama</span>
+          <span>Runs on your computer</span>
           <span style={{ color: VIOLET }}>·</span>
-          <span>Free and open source</span>
+          <span>Open source</span>
         </div>
       </div>
     ),
