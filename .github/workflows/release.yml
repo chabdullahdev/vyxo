@@ -22,10 +22,19 @@ jobs:
       - name: Check the tag matches package.json
         run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
       - run: npm test
-      # Builds are ad-hoc signed (free) unless these secrets exist. electron-builder signs
-      # automatically when CSC_LINK / CSC_KEY_PASSWORD are set, and notarizes when
-      # APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, and APPLE_TEAM_ID are set.
-      - run: npm run desktop:dmg
+      # Without a paid certificate the build is ad-hoc signed (free). GitHub passes a missing
+      # secret as an empty string, and electron-builder treats an empty CSC_LINK as a request
+      # to sign, so the signing variables are only provided when the secrets really exist.
+      - name: Detect a signing certificate
+        env:
+          CERT_PRESENT: ${{ secrets.CSC_LINK != '' }}
+        run: echo "HAS_CERT=$CERT_PRESENT" >> "$GITHUB_ENV"
+      - name: Build (ad-hoc signed)
+        if: env.HAS_CERT != 'true'
+        run: npm run desktop:dmg
+      - name: Build (Developer ID signed and notarized)
+        if: env.HAS_CERT == 'true'
+        run: npm run desktop:dmg
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
