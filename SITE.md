@@ -728,6 +728,35 @@ prompt-injection isolation).
 
 ## Recent Changes
 
+- 2026-10-19: Public-readiness and polish pass.
+  - **Chat**: assistant replies now render markdown (bold, lists, headings,
+    quotes, links, code blocks) through `lib/chat/markdown.ts` and
+    `components/chat/MarkdownContent.tsx`. It builds React elements only, so model
+    output can never inject HTML, and only `http(s)`/`mailto` links are clickable.
+    Added Copy buttons (messages and code), a "Jump to latest" button, and
+    auto-scroll that no longer pulls you down while you re-read an answer. The
+    empty state offers starter prompts. The Project files panel now starts
+    collapsed so the conversation has room.
+  - **Header**: the model pill used to be hardcoded to "Qwen3:8B". It now shows the
+    real selected model and Ollama's status (`components/workspace/ModelBadge.tsx`).
+  - **First run**: `components/workspace/SetupGuide.tsx` explains the one missing
+    step (start Ollama, pull a model, or choose an installed model) with a
+    copyable command, and re-checks when the window regains focus.
+  - **Accessibility**: skip-to-content link, Escape closes the mobile menu, live
+    regions for streaming and errors, labelled composer.
+  - **App shell**: added `app/error.tsx`, `app/not-found.tsx`, viewport/theme
+    colour, and an **About** page (`/about`, in the sidebar under System). Removed
+    the unused `WorkspacePlaceholder` component. Package renamed from the starter
+    template name to `vyxo`.
+  - **Public site mode**: setting `VYXO_PUBLIC_SITE=1` makes a hosted copy serve
+    only the About page at `/` and return 404 for every app page and API route
+    (`lib/site/publicMode.ts`, `proxy.ts`). Use this to host a landing page on a
+    service like Vercel; the real app needs the visitor's own Ollama.
+  - **Open source**: rewrote `README.md`; added `LICENSE` (MIT), `CONTRIBUTING.md`,
+    `SECURITY.md`, issue templates, and GitHub Actions for CI (lint, typecheck,
+    tests, build) and tagged macOS releases.
+  - 259 tests, lint, and typecheck pass.
+
 - 2026-10-15: Branding and macOS installer — integrated the VYXO wordmark assets
   (`public/brand/logo-white.svg` for the dark sidebar, `public/brand/logo-black.svg`
   for light backgrounds, `public/brand/app-icon.png` as the icon source), replaced
