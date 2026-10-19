@@ -728,6 +728,20 @@ prompt-injection isolation).
 
 ## Recent Changes
 
+- 2026-10-20: Accuracy and signing pass.
+  - **Research can only fetch plain page addresses.** Fetched URLs come solely from
+    the list the user types; the question and model output never become requests
+    (pinned by `lib/research/privacy.test.mjs`). Query strings and non-documentation
+    paths (`%`-encoding, `;params`, over 200 characters) are now rejected in
+    `normalizeResearchUrl`, so no text can ride along in a URL.
+  - **Landing page copy** now matches what the code does: chatting makes no
+    outbound requests; Research (9 allowlisted documentation hosts) and update
+    checks are the only features that go online. One model tag
+    (`lib/models/recommended.ts`) is used everywhere. Added first-launch steps for
+    macOS 14 and 15+, and a platform note beside every Download button.
+  - **Release builds are now ad-hoc signed** (`desktop/adhoc-sign.cjs`). The
+    previous build failed `codesign --verify`, which macOS reports as "damaged".
+
 - 2026-10-19 (evening): Public launch pass.
   - **Landing page rebuilt** (`app/web/page.tsx`, `components/web/`): editorial
     layout with a drawn replica of the app window, a "who it is for" section

@@ -55,8 +55,9 @@ export default function PrivacyPage() {
             documentation page you list. It only accepts pages from a short built-in list of sites (React, Next.js,
             MDN, Node.js, Python docs, npm docs, TypeScript, Tailwind CSS, and Ollama), and you can add more yourself
             with a setting. Those sites can see your IP address and which page was requested, as with any browser.
-            The request contains only the page address: your research question and your files stay on your computer
-            and go only to your local model. Redirects are not followed.
+            The request contains only the plain page address (addresses with a query string are rejected): your
+            research question and your files stay on your computer and go only to your local model. Redirects are
+            not followed.
           </li>
           <li>
             <strong>Update checks.</strong> The desktop app periodically asks GitHub Releases whether a newer version
