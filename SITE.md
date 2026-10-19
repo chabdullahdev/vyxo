@@ -154,7 +154,7 @@ A `Memory` is `{ id, content, createdAt, updatedAt }` (timestamps are ISO 8601).
 Conversation history is stored in its own file, **not** in the memory file:
 
 ```
-~/Library/Application Support/ShipStudioAI/conversations.json
+~/Library/Application Support/VYXO Data/conversations.json
 ```
 
 - Same user-data directory and security as memories: directory `0700`, file
@@ -216,7 +216,7 @@ different model.
 Projects are a local organizational layer only. They store a name, description,
 and archive state — never conversation content.
 
-- Stored in `~/Library/Application Support/ShipStudioAI/projects.json` with the
+- Stored in `~/Library/Application Support/VYXO Data/projects.json` with the
   same permissions (`0700`/`0600`), atomic writes, serialized writes, and strict
   validation as the other stores. Versioned (`version: 1`).
 - A conversation references a project by `projectId`. Deleting a project keeps its
@@ -326,12 +326,12 @@ review.
   same project are serialized so one proposal cannot double-apply.
 - **Recovery:** before each destructive change the original content and hashes
   are recorded in a local journal
-  (`~/Library/Application Support/ShipStudioAI/edit-recovery.json`, `0600`).
+  (`~/Library/Application Support/VYXO Data/edit-recovery.json`, `0600`).
   Recovery restores originals only when the current file still matches the
   expected post-apply state; if you changed the file since, it refuses and lists
   the conflicts. Deleting a file goes through the same review/approval path.
 - **Storage:** proposals live in
-  `~/Library/Application Support/ShipStudioAI/edit-proposals.json` (versioned,
+  `~/Library/Application Support/VYXO Data/edit-proposals.json` (versioned,
   atomic writes, `0600`), pruned to the most recent 25 with terminal proposals
   removed first. No source content is written to chat history or memory.
 - **API (desktop-token guarded):** `GET/POST /api/projects/{id}/proposals`,
@@ -374,7 +374,7 @@ small, local implementation — not an autonomous shell agent.
   existing Phase 5C proposal store. The normal review, stale-file, application,
   and recovery protections remain; no specialist can approve or apply a proposal.
 - **Persistence:** plans live in
-  `~/Library/Application Support/ShipStudioAI/agent-plans.json` (versioned, atomic
+  `~/Library/Application Support/VYXO Data/agent-plans.json` (versioned, atomic
   writes, `0600`), pruned to the most recent 30. On load, interrupted `running`
   plans are marked `failed`/`partial` with an “interrupted by restart” note and
   are never auto-retried.
@@ -723,10 +723,31 @@ prompt-injection isolation).
   `MEMORY_MAX_CONTEXT_CHARS` in `lib/config.ts`. The matcher itself lives in
   `lib/memory/retrieval.ts`.
 - To view or edit your saved memories by hand: the file is
-  `~/Library/Application Support/ShipStudioAI/memories.json`. Prefer the
+  `~/Library/Application Support/VYXO Data/memories.json`. Prefer the
   `/memory` page, which validates data on the way in.
 
 ## Recent Changes
+
+- 2026-10-19 (evening): Public launch pass.
+  - **Landing page rebuilt** (`app/web/page.tsx`, `components/web/`): editorial
+    layout with a drawn replica of the app window, a "who it is for" section
+    (lawyers, developers, consultants and finance, researchers and journalists),
+    a data-flow diagram, an honest cloud-vs-VYXO comparison, and setup steps.
+    One serif italic (Instrument Serif) is used for emphasis; everything else is
+    the brand's Space Grotesk and DM Sans.
+  - **Terms and Privacy pages** at `/web/terms` and `/web/privacy`, written from
+    what the code actually does (no analytics, only Research fetches and update
+    checks use the network). Contact: hello@mabdullahshahzad.com. Domain:
+    vyxo.mabdullahshahzad.com (`lib/site/links.ts`).
+  - **Data folder renamed** from `ShipStudioAI` to `VYXO Data`, and made
+    cross-platform (`lib/storage/location.ts`). Existing data is copied across on
+    first launch and the old folder is kept as a backup; if the copy fails the
+    app keeps using the old folder. The name differs from Electron's own `vyxo`
+    profile folder on purpose (macOS ignores case). `VYXO_DATA_DIR` overrides it.
+    App ID is now `com.vyxo.app`.
+  - **Setup guide** offers one-click "Use <model>" buttons when the saved model is
+    not installed but others are.
+  - Added `CODE_OF_CONDUCT.md`, a pull request template, and Dependabot.
 
 - 2026-10-19 (later): Website, brand colours, and auto-update.
   - **Website at `/web`** (moved from `/about`). It is also the public landing
@@ -803,7 +824,7 @@ prompt-injection isolation).
   error handling, and hidden reasoning output. Conversations are client-side only.
 - 2026-10-13: Added an "Open AI Chat" button to the homepage that links to `/chat`.
 - 2026-10-13: Milestone 2A — added a local memory **storage layer** (no UI yet).
-  Memories are saved to `~/Library/Application Support/ShipStudioAI/memories.json`
+  Memories are saved to `~/Library/Application Support/VYXO Data/memories.json`
   with locked-down file permissions. Not connected to chat yet; no memory is
   created automatically. Covered by 14 dependency-free tests (`lib/memory`).
 - 2026-10-13: Milestone 2B — added a Memory Manager: `/memory` page with add,
@@ -1026,7 +1047,7 @@ not a release: it is unsigned and has no `.dmg` yet.
   as the same macOS user.
 - **Memory/data:** the desktop uses the same files as the web preview —
   `memories.json`, `conversations.json`, `projects.json`, and `settings.json` in
-  `~/Library/Application Support/ShipStudioAI/`. Nothing is migrated or rewritten.
+  `~/Library/Application Support/VYXO Data/`. Nothing is migrated or rewritten.
   Tests used an isolated temporary home instead of your real data.
 - **Production CSP:** desktop production responses include a nonce-based
   `Content-Security-Policy` with no `unsafe-inline`/`unsafe-eval` scripts. The

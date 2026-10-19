@@ -195,11 +195,10 @@ export function WorkspaceShell({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [mobileOpen]);
 
-  if (bare) {
+  // The website under /web draws its own full-width layout, in the app and when hosted.
+  if (bare || pathname.startsWith("/web")) {
     return (
-      <main id="main" className="min-h-screen bg-[var(--background)] px-4 py-8 text-[var(--foreground)] sm:px-6 lg:px-8">
-        {children}
-      </main>
+      <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">{children}</div>
     );
   }
 
