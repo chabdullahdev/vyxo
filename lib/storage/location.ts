@@ -58,6 +58,15 @@ function tightenPermissions(directory: string): void {
   }
 }
 
+/** Cleanup must never turn a recoverable failure into a crash. */
+function removeQuietly(path: string): void {
+  try {
+    rmSync(path, { recursive: true, force: true });
+  } catch {
+    // Leaving a stray staging folder behind is harmless.
+  }
+}
+
 export type MigrationResult = "migrated" | "already-present" | "nothing-to-migrate" | "failed";
 
 /**
@@ -77,13 +86,13 @@ export function migrateLegacyData(target: string, legacy: string | null): Migrat
   const staging = `${target}.migrating-${process.pid}`;
   try {
     mkdirSync(dirname(target), { recursive: true });
-    rmSync(staging, { recursive: true, force: true });
+    removeQuietly(staging);
     cpSync(legacy, staging, { recursive: true, preserveTimestamps: true });
     tightenPermissions(staging);
     renameSync(staging, target);
     return "migrated";
   } catch {
-    rmSync(staging, { recursive: true, force: true });
+    removeQuietly(staging);
     // Another process may have finished the same migration first.
     return existsSync(target) ? "already-present" : "failed";
   }
