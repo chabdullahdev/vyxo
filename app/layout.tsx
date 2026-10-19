@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { Space_Grotesk, DM_Sans } from "next/font/google";
 import "./globals.css";
 import { AgentationProvider } from "@/components/AgentationProvider";
+import { siteUrl } from "@/lib/site/url";
 import { WorkspaceShell } from "@/components/workspace/WorkspaceShell";
 
 const spaceGrotesk = Space_Grotesk({
@@ -18,12 +19,13 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: siteUrl(),
   title: { default: "VYXO", template: "%s" },
   description: "A private, local-first AI workspace.",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0b0c10",
+  themeColor: "#09080c",
   colorScheme: "dark",
 };
 

@@ -4,10 +4,16 @@ import Link from "next/link";
 import logoWhite from "../../public/brand/logo-white.svg";
 import { ISSUES_URL, OLLAMA_URL, RELEASES_URL, REPO_URL } from "@/lib/site/links";
 
+const title = "VYXO: an AI workspace that never leaves your computer";
+const description =
+  "VYXO is a private AI workspace that runs on your own computer. Chat, organise projects, keep memory, and delegate to agents without sending a word to the cloud.";
+
 export const metadata: Metadata = {
-  title: "About · VYXO",
-  description:
-    "VYXO is a private AI workspace that runs on your own computer. Chat, organise projects, keep memory, and delegate to agents without sending a word to the cloud.",
+  title,
+  description,
+  alternates: { canonical: "/web" },
+  openGraph: { title, description, type: "website", siteName: "VYXO", url: "/web" },
+  twitter: { card: "summary_large_image", title, description },
 };
 
 const features = [
@@ -32,6 +38,10 @@ const features = [
     body: "Save facts the assistant should remember. It can read them; only you can add, edit, or delete them.",
   },
   {
+    title: "Stays up to date",
+    body: "VYXO checks for new versions and asks before updating. Your conversations, projects, and memories are kept.",
+  },
+  {
     title: "Research with citations",
     body: "Fetch approved public documentation pages and get a summary that cites its sources and states its limits.",
   },
@@ -43,7 +53,7 @@ const steps = [
     body: (
       <>
         Download it from{" "}
-        <a href={OLLAMA_URL} className="text-[var(--accent)] underline underline-offset-2">
+        <a href={OLLAMA_URL} className="text-[var(--accent-text)] underline underline-offset-2">
           ollama.com
         </a>{" "}
         and open it. It runs the models.
@@ -82,7 +92,7 @@ export default function AboutPage() {
           <br />
           that never leaves
           <br />
-          <span className="text-[var(--accent)]">your computer.</span>
+          <span className="text-[var(--accent-text)]">your computer.</span>
         </h1>
         <p className="mt-6 max-w-xl text-base leading-7 text-[var(--muted)]">
           VYXO runs open models through Ollama on your own machine. Your
@@ -126,7 +136,7 @@ export default function AboutPage() {
         </h2>
         <dl className="mt-8 grid gap-px overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--line)] sm:grid-cols-2">
           {features.map((feature) => (
-            <div key={feature.title} className="bg-[var(--surface)] p-6">
+            <div key={feature.title} className="bg-[var(--surface)] p-6 sm:[&:last-child:nth-child(odd)]:col-span-2">
               <dt className="font-[family-name:var(--font-display)] text-base font-medium">{feature.title}</dt>
               <dd className="mt-2 text-sm leading-6 text-[var(--muted)]">{feature.body}</dd>
             </div>
@@ -141,7 +151,7 @@ export default function AboutPage() {
         <ol className="mt-8 space-y-6">
           {steps.map((step, index) => (
             <li key={step.title} className="flex gap-5">
-              <span className="font-[family-name:var(--font-display)] text-3xl font-semibold text-[var(--accent)]">
+              <span className="w-8 shrink-0 font-[family-name:var(--font-display)] text-3xl font-semibold text-[var(--accent-text)]">
                 {index + 1}
               </span>
               <div>
@@ -161,9 +171,10 @@ export default function AboutPage() {
           Local models are smaller than the biggest cloud models, so expect
           answers that are good rather than perfect, and slower on older
           hardware. The Mac app is not yet signed by Apple, so macOS asks you to
-          confirm the first launch (right-click the app, then choose Open).
+          confirm the first launch (right-click the app, then choose Open), and
+          updates open the download page instead of installing in place.
           Found a bug or want a feature?{" "}
-          <a href={ISSUES_URL} className="text-[var(--accent)] underline underline-offset-2">
+          <a href={ISSUES_URL} className="text-[var(--accent-text)] underline underline-offset-2">
             Open an issue
           </a>
           .
@@ -172,7 +183,7 @@ export default function AboutPage() {
           <div className="mt-5">
             <Link
               href="/chat"
-              className="text-sm text-[var(--foreground)] underline underline-offset-4 hover:text-[var(--accent)]"
+              className="text-sm text-[var(--foreground)] underline underline-offset-4 hover:text-[var(--accent-text)]"
             >
               Open the workspace →
             </Link>

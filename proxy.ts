@@ -9,7 +9,7 @@ export function proxy(request: NextRequest) {
   if (process.env.VYXO_PUBLIC_SITE === "1") {
     const decision = decidePublicRoute(pathname);
     if (decision === "home") {
-      return NextResponse.rewrite(new URL("/about", request.url));
+      return NextResponse.rewrite(new URL("/web", request.url));
     }
     if (decision === "block") {
       return new NextResponse("Not found", { status: 404 });
