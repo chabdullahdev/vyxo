@@ -237,7 +237,7 @@ export function ProposalReviewPanel({ projectId }: { projectId: string }) {
       </div>
 
       {error ? (
-        <p role="alert" className="mt-3 rounded-lg border border-[var(--accent)]/40 bg-[var(--accent)]/10 px-3 py-2 text-xs text-[var(--accent)]">
+        <p role="alert" className="mt-3 rounded-lg border border-[var(--accent)]/40 bg-[var(--accent)]/10 px-3 py-2 text-xs text-[var(--accent-text)]">
           {error}
         </p>
       ) : null}
@@ -279,7 +279,7 @@ export function ProposalReviewPanel({ projectId }: { projectId: string }) {
           </div>
           <p className="mt-2 text-sm text-[var(--foreground)]">{selected.summary}</p>
           {selected.error ? (
-            <p role="alert" className="mt-2 text-xs text-[var(--accent)]">
+            <p role="alert" className="mt-2 text-xs text-[var(--accent-text)]">
               {selected.error}
             </p>
           ) : null}
@@ -304,7 +304,7 @@ export function ProposalReviewPanel({ projectId }: { projectId: string }) {
                         key={index}
                         className={
                           line.type === "added"
-                            ? "text-[var(--accent)]"
+                            ? "text-[var(--accent-text)]"
                             : line.type === "removed"
                               ? "text-[var(--muted)]"
                               : "text-[var(--foreground)]/70"

@@ -6,8 +6,6 @@ VYXO gives you chat, projects, memory, research, and agents on top of models
 running locally through [Ollama](https://ollama.com). Your conversations and
 files are never uploaded. There is no account, no telemetry, and no cloud sync.
 
-<!-- Add a screenshot or short GIF here: docs/screenshot.png -->
-
 ## What you get
 
 | | |
@@ -48,6 +46,12 @@ Apple Silicon builds are attached to each
 [release](https://github.com/chabdullahdev/ai/releases/latest). Builds are not
 yet signed by Apple, so on first launch right-click the app and choose **Open**.
 
+**Updates.** The app checks GitHub Releases shortly after launch and every six
+hours, and asks before doing anything. When the app is signed with an Apple
+Developer ID it downloads and installs the update in place and restarts; macOS
+only allows that for signed apps. Unsigned builds instead open the download page.
+Set `VYXO_DISABLE_UPDATES=1` to turn checking off.
+
 ## Privacy, concretely
 
 - The browser never talks to Ollama. Every request goes through the app's own
@@ -69,7 +73,35 @@ See [SECURITY.md](SECURITY.md) to report a vulnerability.
 |---|---|---|
 | `OLLAMA_BASE_URL` | `http://127.0.0.1:11434` | Where Ollama is listening |
 | `DEFAULT_MODEL` | `qwen3:8b` | Model used until you pick another in Settings |
-| `VYXO_PUBLIC_SITE` | unset | Set to `1` to serve **only** the About page and block the app and API, for hosting a public landing page (for example on Vercel) |
+| `VYXO_PUBLIC_SITE` | unset | Set to `1` to serve **only** the website (`/web`) and block the app and API, for hosting it publicly |
+| `NEXT_PUBLIC_SITE_URL` | Vercel production domain | Absolute site URL for share images, canonical links, and the sitemap |
+| `VYXO_DISABLE_UPDATES` | unset | Set to `1` to stop the desktop app checking for updates |
+
+## The website
+
+The marketing page lives at `/web` and includes a social share image
+(`app/web/opengraph-image.tsx`, drawn from the brand logo and colours).
+
+To host it on Vercel, import the repo and set these environment variables:
+
+```
+VYXO_PUBLIC_SITE=1
+NEXT_PUBLIC_SITE_URL=https://your-domain.com
+```
+
+With `VYXO_PUBLIC_SITE=1`, `/` shows the website and every app page and API
+route returns 404, so nothing private is reachable on the hosted copy.
+Without it, the same code is the full app and `/web` is its About page.
+
+## Releasing
+
+1. Bump `version` in `package.json` and commit.
+2. Tag it and push: `git tag v0.2.0 && git push origin v0.2.0`.
+3. The Release workflow builds the `.dmg` and `.zip`, and publishes them with
+   `latest-mac.yml`, which installed apps read to find the update.
+
+To sign and notarize, add `CSC_LINK`, `CSC_KEY_PASSWORD`, `APPLE_ID`,
+`APPLE_APP_SPECIFIC_PASSWORD`, and `APPLE_TEAM_ID` as repository secrets.
 
 ## Scripts
 
@@ -79,7 +111,7 @@ See [SECURITY.md](SECURITY.md) to report a vulnerability.
 | `npm run lint` / `npm run typecheck` / `npm test` | Checks |
 | `npm run build` | Production build |
 | `npm run desktop:dev` | Electron window against the dev server |
-| `npm run desktop:dmg` | Build the macOS `.dmg` into `release/` |
+| `npm run desktop:dmg` | Build the macOS `.dmg` and update `.zip` into `release/` |
 
 ## Project layout
 

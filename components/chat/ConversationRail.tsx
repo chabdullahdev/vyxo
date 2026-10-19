@@ -161,7 +161,7 @@ export function ConversationRail({
         {actionError ? (
           <p
             role="alert"
-            className="mb-2 rounded-lg border border-[var(--accent)]/40 bg-[var(--accent)]/10 px-3 py-2 text-xs text-[var(--accent)]"
+            className="mb-2 rounded-lg border border-[var(--accent)]/40 bg-[var(--accent)]/10 px-3 py-2 text-xs text-[var(--accent-text)]"
           >
             {actionError}
           </p>
@@ -325,7 +325,7 @@ export function ConversationRail({
                         <button
                           type="button"
                           onClick={() => setConfirmDeleteId(conversation.id)}
-                          className="rounded px-1.5 py-0.5 text-[10px] text-[var(--muted)] hover:text-[var(--accent)]"
+                          className="rounded px-1.5 py-0.5 text-[10px] text-[var(--muted)] hover:text-[var(--accent-text)]"
                         >
                           Delete
                         </button>

@@ -154,7 +154,7 @@ export function ModelSelector({ variant = "compact" }: ModelSelectorProps) {
         <p
           role={state === "error" ? "alert" : undefined}
           className={`${isPanel ? "text-sm" : "text-[11px]"} ${
-            state === "error" ? "text-[var(--accent)]" : "text-[var(--muted)]"
+            state === "error" ? "text-[var(--accent-text)]" : "text-[var(--muted)]"
           }`}
         >
           {statusLabel}

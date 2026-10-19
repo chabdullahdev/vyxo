@@ -95,7 +95,7 @@ function TreeRows({
                 <span aria-hidden="true" className="w-3 text-[var(--muted)]">
                   {isLoading ? "…" : isExpanded ? "⌄" : "›"}
                 </span>
-                <span aria-hidden="true" className="text-[var(--accent)]">
+                <span aria-hidden="true" className="text-[var(--accent-text)]">
                   ▰
                 </span>
                 <span className="min-w-0 flex-1 truncate">{entry.name}</span>
@@ -156,7 +156,7 @@ function TreeRows({
                 </span>
               ) : null}
               {isSelected ? (
-                <span className="shrink-0 text-xs font-medium text-[var(--accent)]">
+                <span className="shrink-0 text-xs font-medium text-[var(--accent-text)]">
                   In context
                 </span>
               ) : null}
@@ -218,6 +218,8 @@ export function ProjectExplorer({
   const chooseFolder = useCallback(async () => {
     setError(null);
     setIsChoosing(true);
+    // Show the result (the file tree, or an error) even if the panel was collapsed.
+    setIsOpen(true);
     try {
       const root = await chooseProjectFolder();
       const generation = generationRef.current + 1;
@@ -479,7 +481,7 @@ export function ProjectExplorer({
                           onClick={() => removeSelectedFile(file.path)}
                           disabled={disabled}
                           aria-label={`Remove ${file.path} from chat context`}
-                          className="text-[var(--muted)] hover:text-[var(--accent)] disabled:opacity-50"
+                          className="text-[var(--muted)] hover:text-[var(--accent-text)] disabled:opacity-50"
                         >
                           ×
                         </button>
@@ -499,7 +501,7 @@ export function ProjectExplorer({
           {error ? (
             <p
               role="alert"
-              className="mt-3 rounded-md border border-[var(--accent)]/30 bg-[var(--accent)]/5 px-3 py-2 text-xs text-[var(--accent)]"
+              className="mt-3 rounded-md border border-[var(--accent)]/30 bg-[var(--accent)]/5 px-3 py-2 text-xs text-[var(--accent-text)]"
             >
               {error}
             </p>

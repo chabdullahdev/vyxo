@@ -38,7 +38,7 @@ export function SetupGuide() {
             href="https://ollama.com/download"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[var(--accent)] underline underline-offset-2"
+            className="text-[var(--accent-text)] underline underline-offset-2"
           >
             ollama.com/download
           </a>
@@ -66,7 +66,7 @@ export function SetupGuide() {
         <p>
           The saved model <strong>{catalog.selectedModel}</strong> isn&apos;t installed. Choose
           one of your installed models in{" "}
-          <Link href="/settings" className="text-[var(--accent)] underline underline-offset-2">
+          <Link href="/settings" className="text-[var(--accent-text)] underline underline-offset-2">
             Settings
           </Link>
           , or install it:

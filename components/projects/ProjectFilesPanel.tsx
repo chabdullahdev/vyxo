@@ -225,7 +225,7 @@ export function ProjectFilesPanel({ projectId }: { projectId: string }) {
       ) : null}
 
       {folderState === "failed" ? (
-        <p role="alert" className="text-sm text-[var(--accent)]">
+        <p role="alert" className="text-sm text-[var(--accent-text)]">
           {folderError}
         </p>
       ) : null}
@@ -319,7 +319,7 @@ export function ProjectFilesPanel({ projectId }: { projectId: string }) {
           </div>
 
           {searchError ? (
-            <p role="alert" className="text-sm text-[var(--accent)]">
+            <p role="alert" className="text-sm text-[var(--accent-text)]">
               {searchError}
             </p>
           ) : null}
@@ -334,7 +334,7 @@ export function ProjectFilesPanel({ projectId }: { projectId: string }) {
                       onClick={() => void openFile(hit.path)}
                       className="w-full rounded-md px-2 py-1.5 text-left text-xs transition hover:bg-[var(--surface-hover)]"
                     >
-                      <span className="font-mono text-[var(--accent)]">
+                      <span className="font-mono text-[var(--accent-text)]">
                         {hit.path}
                         {hit.line > 0 ? `:${hit.line}` : ""}
                       </span>
@@ -364,7 +364,7 @@ export function ProjectFilesPanel({ projectId }: { projectId: string }) {
               {listingState === "loading" ? (
                 <p className="p-2 text-xs text-[var(--muted)]">Loading…</p>
               ) : listingState === "failed" ? (
-                <p role="alert" className="p-2 text-xs text-[var(--accent)]">
+                <p role="alert" className="p-2 text-xs text-[var(--accent-text)]">
                   {listingError}
                 </p>
               ) : listing && listing.entries.length > 0 ? (
@@ -391,7 +391,7 @@ export function ProjectFilesPanel({ projectId }: { projectId: string }) {
               ) : previewState === "loading" ? (
                 <p className="p-2 text-xs text-[var(--muted)]">Reading…</p>
               ) : previewState === "failed" ? (
-                <p role="alert" className="p-2 text-xs text-[var(--accent)]">
+                <p role="alert" className="p-2 text-xs text-[var(--accent-text)]">
                   {previewError}
                 </p>
               ) : preview ? (
@@ -406,7 +406,7 @@ export function ProjectFilesPanel({ projectId }: { projectId: string }) {
           </div>
 
           {connectError ? (
-            <p role="alert" className="text-sm text-[var(--accent)]">
+            <p role="alert" className="text-sm text-[var(--accent-text)]">
               {connectError}
             </p>
           ) : null}
@@ -414,7 +414,7 @@ export function ProjectFilesPanel({ projectId }: { projectId: string }) {
       ) : null}
 
       {!connected && connectError ? (
-        <p role="alert" className="mt-2 text-sm text-[var(--accent)]">
+        <p role="alert" className="mt-2 text-sm text-[var(--accent-text)]">
           {connectError}
         </p>
       ) : null}
@@ -438,7 +438,7 @@ function FileEntry({
         onClick={() => void onOpenDirectory(entry.path)}
         className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-xs text-[var(--foreground)] transition hover:bg-[var(--surface-hover)]"
       >
-        <span aria-hidden="true" className="text-[var(--accent)]">
+        <span aria-hidden="true" className="text-[var(--accent-text)]">
           ▸
         </span>
         <span className="truncate">{entry.name}</span>

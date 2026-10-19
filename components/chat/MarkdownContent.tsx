@@ -43,7 +43,7 @@ function Inline({ nodes }: { nodes: InlineNode[] }) {
                 href={node.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[var(--accent)] underline underline-offset-2 hover:text-[var(--foreground)]"
+                className="text-[var(--accent-text)] underline underline-offset-2 hover:text-[var(--foreground)]"
               >
                 <Inline nodes={node.children} />
               </a>

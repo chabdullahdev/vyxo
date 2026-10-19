@@ -24,7 +24,7 @@ export default async function ChatPage({ searchParams }: ChatPageProps) {
     <section className="mx-auto flex h-full min-h-0 w-full max-w-[1320px] flex-col">
       <header className="mb-4 flex shrink-0 flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div>
-          <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.24em] text-[var(--accent)]">
+          <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.24em] text-[var(--accent-text)]">
             Private · runs on this computer
           </p>
           <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold tracking-[-0.03em] text-[var(--foreground)]">

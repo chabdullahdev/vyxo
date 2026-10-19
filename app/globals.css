@@ -1,17 +1,20 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0b0c10;
-  --foreground: #ececf2;
-  --muted: #8b8d99;
-  --accent: #a99bff;
-  --accent-soft: rgba(169, 155, 255, 0.11);
-  --accent-border: rgba(169, 155, 255, 0.36);
-  --silver: #d5d5dd;
-  --surface-deep: #0f1015;
-  --surface: #14161d;
-  --surface-hover: #1b1d26;
-  --line: rgba(236, 236, 242, 0.1);
+  /* Brand values come from public/brand: icon background, logo off-white, logo violet. */
+  --background: #09080c;
+  --foreground: #f5f4fa;
+  --muted: #8d8b9a;
+  --accent: #8259ff;
+  /* The brand violet is 4.5:1 on the background; this tint is for small text. */
+  --accent-text: #9577ff;
+  --accent-soft: rgba(130, 89, 255, 0.14);
+  --accent-border: rgba(130, 89, 255, 0.45);
+  --silver: #d8d6e2;
+  --surface-deep: #0e0d13;
+  --surface: #13121a;
+  --surface-hover: #1a1923;
+  --line: rgba(245, 244, 250, 0.1);
 }
 
 @theme inline {
@@ -19,6 +22,7 @@
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
+  --color-accent-text: var(--accent-text);
   --color-surface: var(--surface);
   --color-surface-deep: var(--surface-deep);
   --font-sans: var(--font-body);
@@ -42,5 +46,5 @@ body {
 }
 
 * {
-  scrollbar-color: #292b36 var(--background);
+  scrollbar-color: #2a2833 var(--background);
 }

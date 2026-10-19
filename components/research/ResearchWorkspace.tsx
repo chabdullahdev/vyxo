@@ -170,7 +170,7 @@ export function ResearchWorkspace() {
         ) : null}
 
         {error ? (
-          <p role="alert" className="mt-3 rounded-lg border border-[var(--accent)]/40 bg-[var(--accent)]/10 px-3 py-2 text-xs text-[var(--accent)]">
+          <p role="alert" className="mt-3 rounded-lg border border-[var(--accent)]/40 bg-[var(--accent)]/10 px-3 py-2 text-xs text-[var(--accent-text)]">
             {error}
           </p>
         ) : null}
@@ -227,7 +227,7 @@ export function ResearchWorkspace() {
                     href={source.canonicalUrl}
                     target="_blank"
                     rel="noreferrer noopener"
-                    className="mt-1 block break-all text-[11px] text-[var(--accent)] underline underline-offset-2"
+                    className="mt-1 block break-all text-[11px] text-[var(--accent-text)] underline underline-offset-2"
                   >
                     {source.canonicalUrl}
                   </a>

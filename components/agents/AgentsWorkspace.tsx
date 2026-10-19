@@ -39,11 +39,11 @@ interface PlanView {
 type LoadState = "loading" | "ready" | "failed";
 
 const STATUS_TONE: Record<string, string> = {
-  completed: "text-[var(--accent)]",
+  completed: "text-[var(--accent-text)]",
   running: "text-[var(--foreground)]",
   pending: "text-[var(--muted)]",
   ready: "text-[var(--muted)]",
-  failed: "text-[var(--accent)]",
+  failed: "text-[var(--accent-text)]",
   blocked: "text-[var(--muted)]",
   cancelled: "text-[var(--muted)]",
 };
@@ -203,7 +203,7 @@ export function AgentsWorkspace() {
           </div>
         </div>
         {error ? (
-          <p role="alert" className="mt-3 rounded-lg border border-[var(--accent)]/40 bg-[var(--accent)]/10 px-3 py-2 text-xs text-[var(--accent)]">
+          <p role="alert" className="mt-3 rounded-lg border border-[var(--accent)]/40 bg-[var(--accent)]/10 px-3 py-2 text-xs text-[var(--accent-text)]">
             {error}
           </p>
         ) : null}
@@ -301,7 +301,7 @@ export function AgentsWorkspace() {
                     <p className="mt-1 text-[11px] text-[var(--muted)]">after: {task.dependsOn.join(", ")}</p>
                   ) : null}
                   {task.error ? (
-                    <p role="alert" className="mt-1 text-[11px] text-[var(--accent)]">
+                    <p role="alert" className="mt-1 text-[11px] text-[var(--accent-text)]">
                       {task.error}
                     </p>
                   ) : null}
@@ -311,7 +311,7 @@ export function AgentsWorkspace() {
                     </pre>
                   ) : null}
                   {task.proposalId ? (
-                    <p className="mt-2 text-[11px] text-[var(--accent)]">
+                    <p className="mt-2 text-[11px] text-[var(--accent-text)]">
                       A proposed code change is ready for review.{" "}
                       <Link href="/projects" className="underline underline-offset-2">
                         Open the project workspace

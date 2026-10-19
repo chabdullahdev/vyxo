@@ -728,6 +728,29 @@ prompt-injection isolation).
 
 ## Recent Changes
 
+- 2026-10-19 (later): Website, brand colours, and auto-update.
+  - **Website at `/web`** (moved from `/about`). It is also the public landing
+    page: `VYXO_PUBLIC_SITE=1` serves it at `/` and returns 404 for everything
+    else. Added a share image (`app/web/opengraph-image.tsx` and
+    `twitter-image.tsx`, Space Grotesk bundled in `app/web/fonts/`), Open Graph and
+    Twitter tags, `robots.txt`, `sitemap.xml`, and `NEXT_PUBLIC_SITE_URL`.
+  - **Brand colours**: the logo and icon use background `#09080c`, off-white
+    `#f5f4fa`, and violet `#8259ff`, which differed from the app theme. The theme in
+    `app/globals.css` now uses those exact values. The brand violet is only 4.5:1
+    on the dark background, so small text uses `--accent-text` (`#9577ff`).
+  - **Icons**: the browser favicon was the default Next.js triangle. It is now the
+    VYXO mark (`app/favicon.ico`, `app/icon.png`, `app/apple-icon.png`). Removed
+    the stale placeholder `desktop/resources/icon.svg`.
+  - **Desktop links fixed**: the desktop window blocked every link, so links in
+    chat replies and the setup guide did nothing. Web and mail links now open in
+    the default browser (`desktop/links.cjs`); other schemes are refused.
+  - **Auto-update** (`desktop/updater.cjs`, `electron-updater`): checks GitHub
+    Releases after launch and every six hours, asks before downloading, and
+    installs in place when the app has a Developer ID signature. Unsigned builds
+    open the download page instead, because macOS refuses unsigned in-place
+    updates. The build now also makes a `.zip` and `latest-mac.yml`.
+  - Choosing a project folder now opens the Project files panel automatically.
+
 - 2026-10-19: Public-readiness and polish pass.
   - **Chat**: assistant replies now render markdown (bold, lists, headings,
     quotes, links, code blocks) through `lib/chat/markdown.ts` and

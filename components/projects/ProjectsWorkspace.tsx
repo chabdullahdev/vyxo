@@ -302,7 +302,7 @@ export function ProjectsWorkspace() {
       </div>
 
       {actionError ? (
-        <p role="alert" className="rounded-lg border border-[var(--accent)]/40 bg-[var(--accent)]/10 px-4 py-3 text-sm text-[var(--accent)]">
+        <p role="alert" className="rounded-lg border border-[var(--accent)]/40 bg-[var(--accent)]/10 px-4 py-3 text-sm text-[var(--accent-text)]">
           {actionError}
         </p>
       ) : null}
@@ -441,7 +441,7 @@ export function ProjectsWorkspace() {
                         <button
                           type="button"
                           onClick={() => setConfirmDeleteId(project.id)}
-                          className="rounded-lg border border-[var(--accent)]/40 px-3 py-1.5 text-xs text-[var(--accent)] transition hover:bg-[var(--accent)]/10"
+                          className="rounded-lg border border-[var(--accent)]/40 px-3 py-1.5 text-xs text-[var(--accent-text)] transition hover:bg-[var(--accent)]/10"
                         >
                           Delete
                         </button>
@@ -497,7 +497,7 @@ export function ProjectsWorkspace() {
                           <p className="text-sm text-[var(--muted)]">Loading conversations…</p>
                         ) : conversationState === "failed" ? (
                           <div className="flex items-center gap-3">
-                            <p className="text-sm text-[var(--accent)]">{conversationError}</p>
+                            <p className="text-sm text-[var(--accent-text)]">{conversationError}</p>
                             <button
                               type="button"
                               onClick={() => void loadConversations(project.id)}

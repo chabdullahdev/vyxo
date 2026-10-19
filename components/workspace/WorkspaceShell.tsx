@@ -37,7 +37,7 @@ const workspaceNavigation: NavigationItem[] = [
 const systemNavigation: NavigationItem[] = [
   { label: "Research", href: "/research", icon: "research" },
   { label: "Settings", href: "/settings", icon: "settings" },
-  { label: "About", href: "/about", icon: "about" },
+  { label: "About", href: "/web", icon: "about" },
 ];
 
 function Icon({ name, className = "h-4 w-4" }: { name: IconName; className?: string }) {
@@ -155,7 +155,7 @@ function NavigationLink({
           : "text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)]"
       }`}
     >
-      <span className={active ? "text-[var(--accent)]" : "text-[var(--muted)] group-hover:text-[var(--foreground)]"}>
+      <span className={active ? "text-[var(--accent-text)]" : "text-[var(--muted)] group-hover:text-[var(--foreground)]"}>
         <Icon name={item.icon} />
       </span>
       <span className={collapsed ? "lg:hidden" : ""}>{item.label}</span>

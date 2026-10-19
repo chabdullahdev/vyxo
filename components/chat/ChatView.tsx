@@ -456,7 +456,7 @@ export function ChatView({
                   }
                 >
                   {message.role === "assistant" && message.status !== "complete" ? (
-                    <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--accent)]">
+                    <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--accent-text)]">
                       {message.status === "interrupted"
                         ? "Interrupted · partial response"
                         : "Could not complete"}
@@ -504,7 +504,7 @@ export function ChatView({
       ) : null}
 
       {error ? (
-        <div role="alert" className="mx-4 mb-2 shrink-0 rounded-lg border border-[var(--accent)]/40 bg-[var(--accent)]/10 px-4 py-3 text-sm text-[var(--accent)] sm:mx-6">
+        <div role="alert" className="mx-4 mb-2 shrink-0 rounded-lg border border-[var(--accent)]/40 bg-[var(--accent)]/10 px-4 py-3 text-sm text-[var(--accent-text)] sm:mx-6">
           {error}
         </div>
       ) : null}

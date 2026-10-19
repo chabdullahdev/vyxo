@@ -110,7 +110,7 @@ export function ProjectContextEditor({
         {editing ? null : (
           <div className="flex items-center gap-3">
             {saveState === "saved" ? (
-              <span className="text-xs text-[var(--accent)]">Saved</span>
+              <span className="text-xs text-[var(--accent-text)]">Saved</span>
             ) : null}
             <button
               type="button"
@@ -138,7 +138,7 @@ export function ProjectContextEditor({
                   >
                     {field.label}
                   </label>
-                  <span className={`text-[10px] ${fieldOver ? "text-[var(--accent)]" : "text-[var(--muted)]"}`}>
+                  <span className={`text-[10px] ${fieldOver ? "text-[var(--accent-text)]" : "text-[var(--muted)]"}`}>
                     {value.length}/{limit}
                   </span>
                 </div>
@@ -157,7 +157,7 @@ export function ProjectContextEditor({
           })}
 
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <span className={`text-[11px] ${overLimit ? "text-[var(--accent)]" : "text-[var(--muted)]"}`}>
+            <span className={`text-[11px] ${overLimit ? "text-[var(--accent-text)]" : "text-[var(--muted)]"}`}>
               {total}/{DEFAULT_MAX_PROJECT_CONTEXT_CHARS} characters total
             </span>
             <div className="flex gap-2">
@@ -181,7 +181,7 @@ export function ProjectContextEditor({
           </div>
 
           {error ? (
-            <p role="alert" className="text-sm text-[var(--accent)]">
+            <p role="alert" className="text-sm text-[var(--accent-text)]">
               {error}
             </p>
           ) : null}

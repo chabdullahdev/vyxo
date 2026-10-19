@@ -10,7 +10,7 @@ export default function AgentsPage() {
   return (
     <section className="mx-auto max-w-5xl">
       <header className="mb-8 max-w-2xl">
-        <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.24em] text-[var(--accent)]">
+        <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.24em] text-[var(--accent-text)]">
           Agents / local only
         </p>
         <h2 className="font-[family-name:var(--font-display)] text-3xl font-semibold tracking-[-0.04em] text-[var(--foreground)] sm:text-4xl">

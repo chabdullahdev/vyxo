@@ -73,7 +73,7 @@ export function SettingsPanel() {
         description="Your data stays in the local application data folder. Nothing here is uploaded."
       >
         {storageError ? (
-          <p role="alert" className="text-sm text-[var(--accent)]">
+          <p role="alert" className="text-sm text-[var(--accent-text)]">
             {storageError}
           </p>
         ) : storage ? (

@@ -212,7 +212,7 @@ export function MemoryManager() {
 
       <div aria-live="polite" className="space-y-3">
         {error ? (
-          <div className="flex items-start justify-between gap-4 rounded-lg border border-[var(--accent)]/40 bg-[var(--accent)]/10 px-4 py-3 text-sm text-[var(--accent)]">
+          <div className="flex items-start justify-between gap-4 rounded-lg border border-[var(--accent)]/40 bg-[var(--accent)]/10 px-4 py-3 text-sm text-[var(--accent-text)]">
             <span>{error}</span>
             <button
               type="button"
@@ -325,7 +325,7 @@ export function MemoryManager() {
                           type="button"
                           onClick={() => setConfirmDeleteId(memory.id)}
                           disabled={isBusy}
-                          className="rounded-lg border border-[var(--accent)]/40 px-3 py-1.5 text-sm font-medium text-[var(--accent)] transition hover:bg-[var(--accent)]/10 disabled:opacity-40"
+                          className="rounded-lg border border-[var(--accent)]/40 px-3 py-1.5 text-sm font-medium text-[var(--accent-text)] transition hover:bg-[var(--accent)]/10 disabled:opacity-40"
                         >
                           Delete
                         </button>
