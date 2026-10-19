@@ -28,8 +28,8 @@
     "desktop:dev": "SHIPSTUDIO_DESKTOP_DEV=1 electron .",
     "desktop:picker-check": "node desktop/picker-e2e.cjs",
     "build:desktop": "SHIPSTUDIO_DESKTOP=1 SHIPSTUDIO_DESKTOP_BUILD=1 next build",
-    "desktop:dir": "npm run build:desktop && electron-builder --config electron-builder.yml --mac dir",
-    "desktop:dmg": "npm run build:desktop && electron-builder --config electron-builder.yml --mac dmg",
+    "desktop:dir": "npm run build:desktop && electron-builder --config electron-builder.yml --mac dir --publish never",
+    "desktop:dmg": "npm run build:desktop && electron-builder --config electron-builder.yml --mac dmg zip --publish never",
     "desktop:smoke": "node desktop/unpacked-smoke.cjs",
     "start": "next start -H 127.0.0.1 -p 3697",
     "lint": "eslint",
@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "agentation": "^3.0.1",
+    "electron-updater": "^6.8.9",
     "next": "16.4.1",
     "react": "19.2.3",
     "react-dom": "19.2.3"

@@ -5,6 +5,8 @@ directories:
   output: release
 files:
   - desktop/main.cjs
+  - desktop/links.cjs
+  - desktop/updater.cjs
   - package.json
 extraResources:
   - from: .next-desktop/standalone
@@ -29,9 +31,16 @@ mac:
   category: public.app-category.productivity
   icon: desktop/resources/icon.icns
   target:
-    - target: dir
+    - target: dmg
+      arch:
+        - arm64
+    - target: zip
       arch:
         - arm64
 dmg:
   title: VYXO
+publish:
+  provider: github
+  owner: chabdullahdev
+  repo: ai
 artifactName: "${productName}-${version}-${arch}.${ext}"

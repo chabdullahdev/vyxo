@@ -6,7 +6,9 @@ const net = require("node:net");
 const os = require("node:os");
 const path = require("node:path");
 const { promisify } = require("node:util");
-const { app, BrowserWindow, dialog, session, utilityProcess } = require("electron");
+const { app, BrowserWindow, dialog, session, shell, utilityProcess } = require("electron");
+const { externalUrlToOpen } = require("./links.cjs");
+const { setupAutoUpdate } = require("./updater.cjs");
 
 const TOKEN_HEADER = "x-shipstudio-desktop-token";
 const IS_PACKAGED = app.isPackaged;
@@ -310,12 +312,20 @@ function configureAppSession(window, origin, token) {
     callback(cancel ? { cancel: true } : {});
   });
 
-  window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+  window.webContents.setWindowOpenHandler(({ url }) => {
+    const external = externalUrlToOpen(url);
+    if (external) void shell.openExternal(external);
+    return { action: "deny" };
+  });
   window.webContents.on("will-navigate", (event, targetUrl) => {
     try {
       const allowed = new URL(targetUrl).origin === allowedOrigin;
       console.info(`[desktop] will-navigate: origin=${new URL(targetUrl).origin}, allowed=${allowed}`);
-      if (!allowed) event.preventDefault();
+      if (!allowed) {
+        event.preventDefault();
+        const external = externalUrlToOpen(targetUrl);
+        if (external) void shell.openExternal(external);
+      }
     } catch {
       event.preventDefault();
     }
@@ -533,6 +543,13 @@ async function startDesktop() {
   if (IS_PACKAGED || process.env.SHIPSTUDIO_DESKTOP_DEV === "1") {
     const origin = await startManagedServer();
     await createWindow(origin);
+    setupAutoUpdate({
+      app,
+      dialog,
+      shell,
+      getWindow: () => desktopWindow,
+      beforeInstall: shutdown,
+    });
     if (process.env.SHIPSTUDIO_DESKTOP_PICKER_SMOKE === "1") {
       await runFolderPickerSmoke();
       if (process.env.SHIPSTUDIO_DESKTOP_SMOKE !== "1") app.quit();
