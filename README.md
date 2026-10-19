@@ -27,7 +27,7 @@ model.
 
 ```bash
 ollama pull qwen3:8b        # any model Ollama supports works
-git clone https://github.com/chabdullahdev/ai.git vyxo
+git clone https://github.com/chabdullahdev/vyxo.git
 cd vyxo
 npm install
 npm run dev                 # opens on http://127.0.0.1:3697
@@ -45,7 +45,7 @@ installed, the app tells you what to do.
 ### Download the Mac app
 
 Apple Silicon builds are attached to each
-[release](https://github.com/chabdullahdev/ai/releases/latest). Builds are not
+[release](https://github.com/chabdullahdev/vyxo/releases/latest). Builds are not
 yet signed by Apple, so on first launch right-click the app and choose **Open**.
 
 **Updates.** The app checks GitHub Releases shortly after launch and every six

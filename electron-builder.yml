@@ -42,5 +42,5 @@ dmg:
 publish:
   provider: github
   owner: chabdullahdev
-  repo: ai
+  repo: vyxo
 artifactName: "${productName}-${version}-${arch}.${ext}"

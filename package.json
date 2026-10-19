@@ -4,13 +4,13 @@
   "description": "A private, local-first AI workspace: chat, projects, memory, and agents powered by models running on your own computer.",
   "license": "MIT",
   "author": "Muhammad Abdullah",
-  "homepage": "https://github.com/chabdullahdev/ai#readme",
+  "homepage": "https://github.com/chabdullahdev/vyxo#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/chabdullahdev/ai.git"
+    "url": "git+https://github.com/chabdullahdev/vyxo.git"
   },
   "bugs": {
-    "url": "https://github.com/chabdullahdev/ai/issues"
+    "url": "https://github.com/chabdullahdev/vyxo/issues"
   },
   "keywords": [
     "ollama",

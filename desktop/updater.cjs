@@ -2,7 +2,7 @@
 const path = require("node:path");
 const { execFile } = require("node:child_process");
 
-const RELEASES_URL = "https://github.com/chabdullahdev/ai/releases/latest";
+const RELEASES_URL = "https://github.com/chabdullahdev/vyxo/releases/latest";
 const FIRST_CHECK_DELAY_MS = 15_000;
 const CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
 
