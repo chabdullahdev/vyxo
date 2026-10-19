@@ -113,7 +113,15 @@ function FirstLaunch() {
         macOS 15 Sequoia or later
       </h4>
       <ol className={`mt-3 list-decimal space-y-2 pl-6 text-[15px] leading-7 text-[var(--muted)] ${step}`}>
-        <li className="pl-2">Drag VYXO to your Applications folder, then double-click it. macOS blocks it with a warning. Close the warning.</li>
+        <li className="pl-2">
+          Drag VYXO to your Applications folder, then double-click it. macOS shows{" "}
+          <em className="not-italic text-[var(--silver)]">
+            &ldquo;Apple could not verify &lsquo;VYXO&rsquo; is free of malware that may harm your Mac or compromise
+            your privacy.&rdquo;
+          </em>{" "}
+          That message is expected for an app without a paid Apple certificate. Close it without choosing the option
+          that moves VYXO to the Trash.
+        </li>
         <li className="pl-2">
           Open <strong className="font-medium text-[var(--silver)]">System Settings</strong>, choose{" "}
           <strong className="font-medium text-[var(--silver)]">Privacy &amp; Security</strong>, and scroll down to Security.

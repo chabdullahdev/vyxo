@@ -51,7 +51,9 @@ Builds are attached to each
 The app is not signed with a paid Apple Developer certificate, so macOS asks you
 to approve the first launch (once):
 
-- **macOS 15 Sequoia or later:** double-click VYXO and close the warning. Open
+- **macOS 15 Sequoia or later:** double-click VYXO. macOS says "Apple could not verify
+  VYXO is free of malware…", which is expected; close it without moving the app
+  to the Trash. Open
   **System Settings → Privacy & Security**, scroll to Security, click **Open
   Anyway**, and enter your password. The button is available for about an hour
   after you try to open the app.
