@@ -34,9 +34,17 @@ interface ActiveProjectSelection {
   files: SelectedProjectFile[];
 }
 
+/** Turns on the workspace-project behaviour: an Ask/Build switch instead of the file picker and Debug mode. */
+export interface ProjectModeConfig {
+  projectId: string;
+  /** Called when Build prepared changes, so the page can show them for review. */
+  onProposal?: (proposalId: string) => void;
+}
+
 interface ChatViewProps {
   conversationId?: string | null;
   projectId?: string | null;
+  projectMode?: ProjectModeConfig;
   initialMessages?: ChatMessageView[];
   onConversationChanged?: (conversationId: string) => void;
   onStreamSettled?: () => void;
@@ -89,6 +97,7 @@ function createConversation(projectId: string | null): Promise<CreateConversatio
 export function ChatView({
   conversationId = null,
   projectId = null,
+  projectMode,
   initialMessages = [],
   onConversationChanged,
   onStreamSettled,
@@ -101,6 +110,7 @@ export function ChatView({
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [debuggingMode, setDebuggingMode] = useState(false);
+  const [buildMode, setBuildMode] = useState(false);
   const [projectSelection, setProjectSelection] =
     useState<ActiveProjectSelection | null>(null);
 
@@ -201,9 +211,83 @@ export function ChatView({
     [],
   );
 
+  /** Build: ask the assistant to create or change the project's files. It returns changes to review, or an answer. */
+  const sendBuild = useCallback(
+    async (text: string) => {
+      if (!projectMode) return;
+      setError(null);
+      setNotice(null);
+      setIsStreaming(true);
+      stickToBottomRef.current = true;
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      try {
+        let activeConversationId = conversationIdRef.current;
+        if (!activeConversationId) {
+          const created = await createConversation(projectMode.projectId);
+          if (!created.ok) {
+            setError(created.error);
+            return;
+          }
+          activeConversationId = created.id;
+          conversationIdRef.current = created.id;
+          onConversationChanged?.(created.id);
+        }
+        if (controller.signal.aborted) return;
+
+        setMessages((previous) => [
+          ...previous,
+          { id: nextId(), role: "user", content: text, status: "complete" },
+          { id: nextId(), role: "assistant", content: "", status: "complete" },
+        ]);
+        setInput("");
+
+        const response = await fetch(`/api/projects/${encodeURIComponent(projectMode.projectId)}/proposals`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ request: text, conversationId: activeConversationId }),
+          signal: controller.signal,
+        });
+        const data = (await response.json().catch(() => null)) as {
+          error?: string;
+          answer?: string;
+          assistantMessage?: string;
+          proposal?: { id?: string };
+        } | null;
+        if (!response.ok) throw new Error(data?.error ?? `Request failed (status ${response.status}).`);
+
+        const reply = data?.assistantMessage ?? data?.answer ?? "Done.";
+        setMessages((previous) => {
+          const next = [...previous];
+          const last = next[next.length - 1];
+          if (last && last.role === "assistant") next[next.length - 1] = { ...last, content: reply, status: "complete" };
+          return next;
+        });
+        if (data?.proposal?.id) projectMode.onProposal?.(data.proposal.id);
+      } catch (caught) {
+        if (!controller.signal.aborted) {
+          const message = caught instanceof Error ? caught.message : "Something went wrong. Please try again.";
+          setError(message);
+          setInput(text);
+          settleAssistant("failed", message);
+        }
+      } finally {
+        if (abortRef.current === controller) abortRef.current = null;
+        if (!controller.signal.aborted) setIsStreaming(false);
+        onStreamSettled?.();
+      }
+    },
+    [onConversationChanged, onStreamSettled, projectMode, settleAssistant],
+  );
+
   const send = useCallback(async () => {
     const text = input.trim();
     if (!text || isStreaming) return;
+    if (projectMode && buildMode) {
+      await sendBuild(text);
+      return;
+    }
 
     setError(null);
     setNotice(null);
@@ -346,6 +430,9 @@ export function ChatView({
     onConversationChanged,
     onStreamSettled,
     projectId,
+    projectMode,
+    buildMode,
+    sendBuild,
     projectSelection,
     settleAssistant,
   ]);
@@ -359,7 +446,39 @@ export function ChatView({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)] shadow-[0_24px_80px_rgba(0,0,0,0.18)]">
-      <div className="mb-3 flex shrink-0 flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--line)] px-4 py-3">
+      {projectMode ? (
+        <div className="mb-3 flex shrink-0 flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--line)] px-4 py-3">
+          <div role="group" aria-label="Chat mode" className="inline-flex rounded-lg border border-[var(--line)] p-1">
+            {(["Ask", "Build"] as const).map((label) => {
+              const active = (label === "Build") === buildMode;
+              return (
+                <button
+                  key={label}
+                  type="button"
+                  aria-pressed={active}
+                  disabled={isStreaming}
+                  onClick={() => setBuildMode(label === "Build")}
+                  className={`rounded-md px-3 py-1.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                    active ? "bg-[var(--foreground)] text-[var(--background)]" : "text-[var(--muted)] hover:text-[var(--foreground)]"
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+          <p className="min-w-0 flex-1 text-xs text-[var(--muted)] sm:text-right">
+            {buildMode
+              ? "Describe what to create or change. You review every change before it is applied."
+              : "Ask questions about this project's files. Nothing is changed."}
+          </p>
+        </div>
+      ) : null}
+      <div
+        className={`mb-3 flex shrink-0 flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--line)] px-4 py-3 ${
+          projectMode ? "hidden" : ""
+        }`}
+      >
         <div
           role="group"
           aria-label="Assistant mode"
@@ -399,10 +518,12 @@ export function ChatView({
         </p>
       </div>
 
-      <ProjectExplorer
-        disabled={isStreaming}
-        onSelectionChange={handleProjectSelectionChange}
-      />
+      {projectMode ? null : (
+        <ProjectExplorer
+          disabled={isStreaming}
+          onSelectionChange={handleProjectSelectionChange}
+        />
+      )}
 
       <div className="relative flex min-h-0 flex-1 flex-col">
         <div
@@ -470,7 +591,9 @@ export function ChatView({
                       message.content
                     )
                   ) : message.role === "assistant" && isStreaming ? (
-                    <span className="text-sm text-[var(--muted)]">Thinking…</span>
+                    <span className="text-sm text-[var(--muted)]">
+                      {projectMode && buildMode ? "Working on it… this can take up to a minute." : "Thinking…"}
+                    </span>
                   ) : null}
                 </div>
                 {message.content && !(isStreaming && message === messages[messages.length - 1]) ? (
@@ -526,9 +649,13 @@ export function ChatView({
             rows={1}
             aria-label="Message"
             placeholder={
-              debuggingMode
-                ? "Describe what should happen, what happens instead, or paste an error…"
-                : "Type a message… (Enter to send, Shift+Enter for a new line)"
+              projectMode
+                ? buildMode
+                  ? "Describe what to create or change… (Enter to send)"
+                  : "Ask about this project… (Enter to send, Shift+Enter for a new line)"
+                : debuggingMode
+                  ? "Describe what should happen, what happens instead, or paste an error…"
+                  : "Type a message… (Enter to send, Shift+Enter for a new line)"
             }
             className="min-h-[2.75rem] max-h-[200px] flex-1 resize-none rounded-lg border border-[var(--foreground)]/15 bg-transparent px-4 py-3 text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)] focus:border-[var(--accent-border)] focus-visible:ring-1 focus-visible:ring-[var(--accent-border)]"
           />

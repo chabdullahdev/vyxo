@@ -43,7 +43,8 @@ export async function DELETE(
 ): Promise<Response> {
   if (!isAuthorizedDesktopRequest(request)) return unauthorizedDesktopResponse(request);
   const { id } = await context.params;
-  return deleteProjectResponse(projectStore, conversationStore, id);
+  const deleteFiles = new URL(request.url).searchParams.get("deleteFiles") === "true";
+  return deleteProjectResponse(projectStore, conversationStore, id, { deleteFiles });
 }
 
 export function POST(request: NextRequest): Response {

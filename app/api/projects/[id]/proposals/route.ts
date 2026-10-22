@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { conversationStore } from "@/lib/conversations/store";
 import { createProposalResponse, listProposalsResponse, methodNotAllowedResponse } from "@/lib/edits/api";
 import { proposalStore } from "@/lib/edits/store";
 import { projectFileService } from "@/lib/files/service";
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest, context: RouteContext): Promise
   if (!isAuthorizedDesktopRequest(request)) return unauthorizedDesktopResponse(request);
   const { id } = await context.params;
   return createProposalResponse(
-    { projectStore, proposalStore, service: projectFileService },
+    { projectStore, proposalStore, service: projectFileService, conversationStore },
     id,
     request,
   );

@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ProjectContextEditor } from "@/components/projects/ProjectContextEditor";
 import { ProjectFilesPanel } from "@/components/projects/ProjectFilesPanel";
 import { ProposalReviewPanel } from "@/components/projects/ProposalReviewPanel";
+import { NewProjectCard, type NewProjectValues } from "@/components/projects/workspace/NewProjectCard";
 import type { ConversationSummary } from "@/lib/conversations/store";
 import type { Project } from "@/lib/projects/store";
 
@@ -41,15 +43,17 @@ export function ProjectsWorkspace() {
   const [filter, setFilter] = useState<"active" | "archived">("active");
   const [refreshToken, setRefreshToken] = useState(0);
 
-  const [newName, setNewName] = useState("");
-  const [newDescription, setNewDescription] = useState("");
+  const router = useRouter();
   const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameName, setRenameName] = useState("");
   const [renameDescription, setRenameDescription] = useState("");
   const [savingEdit, setSavingEdit] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [alsoDeleteFiles, setAlsoDeleteFiles] = useState(false);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
@@ -126,25 +130,33 @@ export function ProjectsWorkspace() {
     [loadConversations],
   );
 
-  const createProject = useCallback(async () => {
-    const name = newName.trim();
-    if (name.length === 0 || creating) return;
-    setCreating(true);
-    setActionError(null);
-    const result = await requestJson<{ project: Project }>("/api/projects", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, description: newDescription.trim() }),
-    });
-    setCreating(false);
-    if (!result.ok) {
-      setActionError(result.error);
-      return;
-    }
-    setNewName("");
-    setNewDescription("");
-    refreshList();
-  }, [creating, newDescription, newName, refreshList]);
+  const createProject = useCallback(
+    async (values: NewProjectValues) => {
+      if (creating) return;
+      setCreating(true);
+      setCreateError(null);
+      setNotice(null);
+      const result = await requestJson<{ project: Project }>("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+      setCreating(false);
+      if (!result.ok) {
+        setCreateError(result.error);
+        return;
+      }
+      // A new workspace opens straight away; a connected folder is set up from its list entry.
+      if (values.kind === "managed") {
+        const id = encodeURIComponent(result.data.project.id);
+        const brief = values.brief.trim();
+        router.push(brief ? `/projects/${id}?brief=${encodeURIComponent(brief)}` : `/projects/${id}`);
+        return;
+      }
+      refreshList();
+    },
+    [creating, refreshList, router],
+  );
 
   const startRename = (project: ProjectWithCount) => {
     setConfirmDeleteId(null);
@@ -197,10 +209,12 @@ export function ProjectsWorkspace() {
   );
 
   const deleteProject = useCallback(
-    async (projectId: string) => {
+    async (projectId: string, withFiles: boolean) => {
       setActionError(null);
-      const result = await requestJson<{ deleted: true }>(
-        `/api/projects/${encodeURIComponent(projectId)}`,
+      setNotice(null);
+      const query = withFiles ? "?deleteFiles=true" : "";
+      const result = await requestJson<{ deleted: true; filesNote?: string | null }>(
+        `/api/projects/${encodeURIComponent(projectId)}${query}`,
         { method: "DELETE" },
       );
       setConfirmDeleteId(null);
@@ -208,6 +222,7 @@ export function ProjectsWorkspace() {
         setActionError(result.error);
         return;
       }
+      if (result.data.filesNote) setNotice(result.data.filesNote);
       if (selectedId === projectId) {
         setSelectedId(null);
         setConversations([]);
@@ -243,37 +258,13 @@ export function ProjectsWorkspace() {
 
   return (
     <div className="space-y-5">
-      <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-5">
-        <h3 className="font-[family-name:var(--font-display)] text-base font-medium text-[var(--foreground)]">
-          New project
-        </h3>
-        <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_1.4fr_auto]">
-          <input
-            value={newName}
-            onChange={(event) => setNewName(event.target.value)}
-            placeholder="Project name"
-            aria-label="New project name"
-            maxLength={120}
-            className="rounded-lg border border-[var(--line)] bg-[var(--surface-deep)] px-3 py-2 text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)] focus:border-[var(--accent-border)]"
-          />
-          <input
-            value={newDescription}
-            onChange={(event) => setNewDescription(event.target.value)}
-            placeholder="Short description (optional)"
-            aria-label="New project description"
-            maxLength={2000}
-            className="rounded-lg border border-[var(--line)] bg-[var(--surface-deep)] px-3 py-2 text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted)] focus:border-[var(--accent-border)]"
-          />
-          <button
-            type="button"
-            onClick={() => void createProject()}
-            disabled={newName.trim().length === 0 || creating}
-            className="rounded-lg bg-[var(--foreground)] px-4 py-2 text-sm font-medium text-[var(--background)] transition hover:bg-[var(--silver)] disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {creating ? "Creating…" : "Create project"}
-          </button>
-        </div>
-      </section>
+      <NewProjectCard creating={creating} error={createError} onCreate={(values) => void createProject(values)} />
+
+      {notice ? (
+        <p role="status" className="rounded-lg border border-[var(--line)] px-4 py-3 text-sm text-[var(--foreground)]">
+          {notice}
+        </p>
+      ) : null}
 
       <div className="flex flex-wrap items-center gap-3">
         <input
@@ -396,6 +387,9 @@ export function ProjectsWorkspace() {
                         >
                           <span className="flex items-center gap-2 font-[family-name:var(--font-display)] text-base font-medium text-[var(--foreground)]">
                             {project.name}
+                            <span className="rounded-full border border-[var(--line)] px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-[var(--muted)]">
+                              {project.kind === "managed" ? "Workspace" : "Folder"}
+                            </span>
                             {project.archived ? (
                               <span className="rounded-full border border-[var(--line)] px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-[var(--muted)]">
                                 Archived
@@ -411,19 +405,30 @@ export function ProjectsWorkspace() {
                         </p>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <Link
-                          href={`/chat?project=${encodeURIComponent(project.id)}`}
-                          className="rounded-lg bg-[var(--foreground)] px-3 py-1.5 text-xs font-medium text-[var(--background)] transition hover:bg-[var(--silver)]"
-                        >
-                          New chat
-                        </Link>
-                        <button
-                          type="button"
-                          onClick={() => selectProject(project.id)}
-                          className="rounded-lg border border-[var(--line)] px-3 py-1.5 text-xs font-medium text-[var(--foreground)] transition hover:bg-[var(--surface-hover)]"
-                        >
-                          {isSelected ? "Viewing" : "Open"}
-                        </button>
+                        {project.kind === "managed" ? (
+                          <Link
+                            href={`/projects/${encodeURIComponent(project.id)}`}
+                            className="rounded-lg bg-[var(--foreground)] px-3 py-1.5 text-xs font-medium text-[var(--background)] transition hover:bg-[var(--silver)]"
+                          >
+                            Open workspace
+                          </Link>
+                        ) : (
+                          <>
+                            <Link
+                              href={`/chat?project=${encodeURIComponent(project.id)}`}
+                              className="rounded-lg bg-[var(--foreground)] px-3 py-1.5 text-xs font-medium text-[var(--background)] transition hover:bg-[var(--silver)]"
+                            >
+                              New chat
+                            </Link>
+                            <button
+                              type="button"
+                              onClick={() => selectProject(project.id)}
+                              className="rounded-lg border border-[var(--line)] px-3 py-1.5 text-xs font-medium text-[var(--foreground)] transition hover:bg-[var(--surface-hover)]"
+                            >
+                              {isSelected ? "Viewing" : "Open"}
+                            </button>
+                          </>
+                        )}
                         <button
                           type="button"
                           onClick={() => startRename(project)}
@@ -440,7 +445,10 @@ export function ProjectsWorkspace() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setConfirmDeleteId(project.id)}
+                          onClick={() => {
+                            setAlsoDeleteFiles(false);
+                            setConfirmDeleteId(project.id);
+                          }}
                           className="rounded-lg border border-[var(--accent)]/40 px-3 py-1.5 text-xs text-[var(--accent-text)] transition hover:bg-[var(--accent)]/10"
                         >
                           Delete
@@ -450,10 +458,22 @@ export function ProjectsWorkspace() {
 
                     {isConfirming ? (
                       <div className="mt-4 flex flex-col gap-3 rounded-lg border border-[var(--accent)]/40 bg-[var(--accent)]/5 p-4 sm:flex-row sm:items-center sm:justify-between">
-                        <p className="text-sm text-[var(--foreground)]">
-                          Delete “{project.name}”? Its conversations are kept but become unassigned. Saved
-                          memories are not affected.
-                        </p>
+                        <div className="space-y-2">
+                          <p className="text-sm text-[var(--foreground)]">
+                            Delete “{project.name}”? Its conversations are kept but become unassigned. Saved
+                            memories are not affected.
+                          </p>
+                          {project.kind === "managed" ? (
+                            <label className="flex items-center gap-2 text-xs text-[var(--foreground)]">
+                              <input
+                                type="checkbox"
+                                checked={alsoDeleteFiles}
+                                onChange={(event) => setAlsoDeleteFiles(event.target.checked)}
+                              />
+                              Also permanently delete this project&apos;s files from its folder
+                            </label>
+                          ) : null}
+                        </div>
                         <div className="flex gap-2">
                           <button
                             type="button"
@@ -464,7 +484,7 @@ export function ProjectsWorkspace() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => void deleteProject(project.id)}
+                            onClick={() => void deleteProject(project.id, project.kind === "managed" && alsoDeleteFiles)}
                             className="rounded-lg bg-[var(--accent)] px-3 py-1.5 text-sm font-medium text-[var(--background)]"
                           >
                             Delete project
@@ -480,8 +500,24 @@ export function ProjectsWorkspace() {
                           project={project}
                           onSaved={handleProjectSaved}
                         />
-                        <ProjectFilesPanel key={`files-${project.id}`} projectId={project.id} />
-                        <ProposalReviewPanel key={`proposals-${project.id}`} projectId={project.id} />
+                        {project.kind === "managed" ? (
+                          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[var(--line)] p-4">
+                            <p className="text-sm text-[var(--muted)]">
+                              Files, changes and the website preview for this project are on its workspace page.
+                            </p>
+                            <Link
+                              href={`/projects/${encodeURIComponent(project.id)}`}
+                              className="rounded-lg bg-[var(--foreground)] px-3 py-1.5 text-xs font-medium text-[var(--background)] transition hover:bg-[var(--silver)]"
+                            >
+                              Open workspace
+                            </Link>
+                          </div>
+                        ) : (
+                          <>
+                            <ProjectFilesPanel key={`files-${project.id}`} projectId={project.id} />
+                            <ProposalReviewPanel key={`proposals-${project.id}`} projectId={project.id} />
+                          </>
+                        )}
                         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                           <p className="text-xs font-medium uppercase tracking-[0.16em] text-[var(--muted)]">
                             Conversations in this project

@@ -1,10 +1,13 @@
 import { randomUUID } from "node:crypto";
 import type { ProjectStore } from "../projects/store.ts";
+import type { ConversationStore } from "../conversations/store.ts";
 import type { ProjectFileService } from "../files/service.ts";
 import { loadProjectContextMessage } from "../projects/context.ts";
 import { gatherProjectFileEvidence } from "../files/retrieval.ts";
 import { applyProposal, recoverProposal, type ApplyDependencies } from "./apply.ts";
-import { buildProposalOperations, parseProposalOutput } from "./build.ts";
+import { buildProposalOperations, parseProposalOutput, type RawProposal } from "./build.ts";
+import { runWorkspaceBuilder, type BuilderInput, type BuilderResult } from "../workspace/builder.ts";
+import { builderGuideFor, keepEditableOperations } from "../workspace/templates.ts";
 import { generateProposalText, type GenerateResult } from "./generate.ts";
 import type { ProposalStore, RecoveryStore } from "./store.ts";
 import {
@@ -110,6 +113,47 @@ export interface CreateProposalDeps {
     contextText: string | null;
     evidenceText: string | null;
   }) => Promise<GenerateResult>;
+  /** When given, a Build exchange is also saved to the project's chat so the conversation reads naturally. */
+  conversationStore?: ConversationStore;
+  /** Build mode for workspace projects. Replaceable in tests. */
+  workspaceBuilder?: (input: BuilderInput) => Promise<BuilderResult>;
+}
+
+function describeOperation(operation: { op: string; path: string; diff: { added: number; removed: number } | null }): string {
+  const verb = operation.op === "create" ? "new file" : operation.op === "delete" ? "delete" : "change";
+  const counts = operation.diff ? ` (+${operation.diff.added} −${operation.diff.removed})` : "";
+  return `- ${verb}: \`${operation.path}\`${counts}`;
+}
+
+/** The chat message that tells the person a proposal is waiting for their review. */
+export function proposalChatMessage(proposal: EditProposal): string {
+  const count = proposal.operations.length;
+  return [
+    `I prepared ${count} change${count === 1 ? "" : "s"} for you to review: ${proposal.summary}`,
+    "",
+    ...proposal.operations.map(describeOperation),
+    "",
+    "Nothing has been changed yet. Open the **Changes** tab to review it, then apply or reject it.",
+  ].join("\n");
+}
+
+async function recordBuildTurn(
+  store: ConversationStore | undefined,
+  conversationId: unknown,
+  projectId: string,
+  userText: string,
+  assistantText: string,
+): Promise<void> {
+  if (!store || typeof conversationId !== "string" || conversationId.length === 0) return;
+  try {
+    const conversation = await store.getConversation(conversationId);
+    if (conversation.projectId !== projectId) return;
+    await store.appendUserMessage(conversationId, { content: userText });
+    await store.appendAssistantMessage(conversationId, { content: assistantText, status: "complete" });
+  } catch {
+    // The proposal itself is fine; only the chat history could not be updated.
+    console.error("[edits] could not save the Build exchange to the project chat");
+  }
 }
 
 export async function createProposalResponse(
@@ -135,21 +179,52 @@ export async function createProposalResponse(
     }
 
     const context = await loadProjectContextMessage(deps.projectStore, projectId);
-    const evidence = await gatherProjectFileEvidence(
-      deps.service,
-      deps.projectStore,
-      projectId,
-      entry,
-    );
 
-    const generate = deps.generate ?? generateProposalText;
-    const generated = await generate({
-      request: entry,
-      contextText: context.status === "loaded" ? context.message : null,
-      evidenceText: evidence.status === "loaded" ? evidence.message : null,
-    });
-
-    const raw = parseProposalOutput(generated.text);
+    let raw: RawProposal;
+    let model: string;
+    if (project.kind === "managed") {
+      // Workspace projects use Build mode: the assistant is shown the project's files and writes whole files.
+      const built = await (deps.workspaceBuilder ?? runWorkspaceBuilder)({
+        folder: project.sourceFolder,
+        request: entry,
+        projectNotes: context.status === "loaded" ? context.message : null,
+        siteGuide: builderGuideFor(project.template),
+        signal: request.signal,
+      });
+      if (built.kind === "answer") {
+        await recordBuildTurn(deps.conversationStore, parsed.body.conversationId, projectId, entry, built.text);
+        return jsonResponse({ answer: built.text, model: built.model }, 200);
+      }
+      // Some files are the site's design and are never changed by Build mode (see templates.ts).
+      const editable = keepEditableOperations(project.template, built.proposal.operations);
+      if (editable.dropped.length > 0 && editable.kept.length === 0) {
+        return jsonResponse(
+          {
+            answer:
+              "The page design of this website is fixed, so VYXO did not change it. Ask for changes to the words, colours, or sections instead, for example: \"make the accent colour emerald\" or \"add a section about our opening hours\".",
+            model: built.model,
+          },
+          200,
+        );
+      }
+      raw = { ...built.proposal, operations: editable.kept };
+      model = built.model;
+    } else {
+      const evidence = await gatherProjectFileEvidence(
+        deps.service,
+        deps.projectStore,
+        projectId,
+        entry,
+      );
+      const generate = deps.generate ?? generateProposalText;
+      const generated = await generate({
+        request: entry,
+        contextText: context.status === "loaded" ? context.message : null,
+        evidenceText: evidence.status === "loaded" ? evidence.message : null,
+      });
+      raw = parseProposalOutput(generated.text);
+      model = generated.model;
+    }
     const operations = await buildProposalOperations(deps.service, project.sourceFolder, raw);
 
     const now = new Date().toISOString();
@@ -160,7 +235,7 @@ export async function createProposalResponse(
       updatedAt: now,
       request: entry,
       summary: raw.summary,
-      model: generated.model,
+      model,
       status: "ready_for_review",
       operations,
       approvedAt: null,
@@ -169,7 +244,11 @@ export async function createProposalResponse(
       error: null,
     };
     await deps.proposalStore.create(proposal);
-    return jsonResponse({ proposal }, 201);
+    const assistantMessage = proposalChatMessage(proposal);
+    if (project.kind === "managed") {
+      await recordBuildTurn(deps.conversationStore, parsed.body.conversationId, projectId, entry, assistantMessage);
+    }
+    return jsonResponse({ proposal, assistantMessage }, 201);
   } catch (error) {
     return editErrorResponse(error);
   }

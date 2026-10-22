@@ -15,6 +15,8 @@ export interface ProjectFilePayload {
 export type ProjectPathStatus = "allowed" | "unsupported" | "sensitive" | "unsafe";
 
 const EXCLUDED_DIRECTORIES = new Set([
+  // VYXO's own bookkeeping inside a workspace project (marker, trash). Never shown or read.
+  ".vyxo",
   ".git",
   ".next",
   ".cache",

@@ -1,0 +1,16 @@
+{
+  "name": "vyxo-site-deps",
+  "private": true,
+  "description": "The packages a VYXO Next.js website needs. They are installed into the app at build time, so nothing is downloaded on the user's Mac. The @types packages stop Next.js from trying to install them over the internet when a site has a tsconfig.json.",
+  "dependencies": {
+    "@tailwindcss/postcss": "4.1.18",
+    "next": "16.4.1",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "tailwindcss": "4.1.18",
+    "typescript": "5.9.3",
+    "@types/react": "19.2.8",
+    "@types/react-dom": "19.2.3",
+    "@types/node": "20.19.29"
+  }
+}

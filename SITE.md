@@ -90,6 +90,17 @@ app/api/projects/[id]/proposals/[proposalId]/approve/route.ts  Approve a proposa
 app/api/projects/[id]/proposals/[proposalId]/apply/route.ts    Apply an approved proposal
 app/api/projects/[id]/recovery/route.ts                  List / run recovery
 components/projects/ProposalReviewPanel.tsx  Proposal diff review, approve/apply, recovery UI
+app/projects/[id]/page.tsx                   Workspace page for one managed project
+lib/workspace/build.ts                       Builds a Next.js website into out/ (timeout, one build at a time)
+lib/workspace/runtime.ts                     Finds the bundled Next.js packages
+lib/workspace/git.ts                         Git for a project: snapshots, remote, push (no stored credentials)
+components/projects/workspace/WorkspaceGit.tsx  The Git tab
+desktop/site-deps/package.json               The locked list of packages a Next.js website needs
+components/projects/workspace/WorkspaceView.tsx    Workspace header and the four tabs
+components/projects/workspace/WorkspaceChat.tsx    Project chat (Ask/Build) and conversation picker
+components/projects/workspace/WorkspaceFiles.tsx   Files tab: browse, open, edit, Trash
+components/projects/workspace/WorkspaceChanges.tsx Changes tab: review, apply, undo
+components/projects/workspace/WorkspacePreview.tsx Website preview (sandboxed frame)
 lib/agents/types.ts      Specialist/task/plan types, states, limits, error codes
 lib/agents/registry.ts   The four specialist definitions and validation
 lib/agents/plan.ts       Planner output parsing + plan validation (deps, cycles, limits)
@@ -727,6 +738,92 @@ prompt-injection isolation).
   `/memory` page, which validates data on the way in.
 
 ## Recent Changes
+
+- 2026-10-23: **Windows build.** VYXO can be built for Windows on a Windows laptop with one command.
+  - Build on the laptop: install Node.js 22 or newer and Git for Windows, copy the VYXO folder
+    (without `node_modules` and `build`), then run `npm install` and `npm run desktop:win`. The
+    installer is written to `release\`. Ollama and the model are installed on the laptop as on the Mac.
+  - The Next.js packages are installed for the laptop's own system (`build/site-deps/host.txt`
+    records it, and a folder prepared on another system is rebuilt).
+  - Project links use junctions on Windows (no administrator rights needed). Git and the GitHub
+    CLI are looked up in their usual Windows folders.
+  - The installer is not signed yet, so Windows shows an "unknown publisher" warning.
+    Updates on Windows open the downloads page instead of installing themselves.
+  - Not verified on Windows yet: the installed app running a project, the site build, the preview,
+    Git, and the update message. A Windows build was produced on this Mac (`--win dir`) to check
+    the packaging settings; the Windows-only runtime checks need the laptop.
+
+- 2026-10-23: **Git for each workspace project.** A new **Git** tab lets you set up version
+  tracking, save snapshots (commits), connect a repository, create a private GitHub repository,
+  and push.
+  - Runs with the Git and GitHub CLI already on this Mac (`gh auth login`). VYXO stores no
+    tokens. Pushing never happens unless you press **Push to GitHub**.
+  - Every new repository ignores `node_modules`, `.next`, `out`, `.vyxo`, `.env*`, `*.pem`,
+    and `*.key`. Before a snapshot is saved, its files are checked with the same private-file
+    rules as the assistant. If one looks private, nothing is saved and the file is named.
+  - Only https, ssh, and git@ addresses are accepted for a remote.
+  - Settings' "Internet access" text now says that Push sends a project's snapshots to the
+    repository you connected.
+  - Verified: 8 tests on real Git and a local bare repository (set up, snapshot, refusal of
+    private files, address rules, push, bad remote), and the tab in the browser. The GitHub
+    repository creation was not run against GitHub, to avoid creating a repository in tests.
+
+- 2026-10-23: **Websites: Next.js or plain HTML/CSS/JS, from a description.** New website
+  projects offer two starting points: **Next.js website** (Tailwind CSS, the default idea
+  for web apps) and **HTML, CSS and JS website** (no framework, no build step). Describe the
+  site in the form and VYXO writes a first draft in Build mode, which opens in the Changes
+  tab for review. Nothing is saved until you apply it.
+  - The Next.js packages ship inside the app (`desktop/site-deps/package.json`, installed by
+    `scripts/prepare-site-deps.mjs` before `npm run desktop:dir` or `desktop:dmg`). Nothing is
+    downloaded on the user's Mac. Each Next.js project links its `node_modules` to them.
+  - Preview builds the site with the app's own runtime (`lib/workspace/build.ts`), then shows
+    the built pages from `out/`. A build starts when the project is created, after each applied
+    change, after an undo, and from the Preview's "Build again" button. Failed builds show the
+    reason. A build stops after 3 minutes.
+  - The Build mode gets extra instructions for Next.js projects (`builderGuideFor`), and the
+    export and the assistant's file list skip build output and caches (`.next`, and `out` in
+    Next.js sites).
+  - The packages include `@types/react`, `@types/react-dom`, and `@types/node`, so Next.js never
+    tries to download types for a site's tsconfig. Site builds also run npm offline.
+  - Not yet built into the release: SvelteKit and Astro (these need the same packages added to
+    `desktop/site-deps`, and the app grows by their size).
+  - Size: the Next.js packages add about 370 MB to the app before compression (Next.js itself
+    is about 207 MB, its compiler about 86 MB). Measure the release before deciding on more.
+  - Verified: 391 tests, including real Next.js builds of the starter, a broken page, the
+    timeout, the preview's asset paths, and the export. In a production build of the app with
+    the real model (`qwen3.5:9b`): a description produced a draft, Apply built the site, a
+    change to the site rebuilt it, Undo rebuilt it back, and a plain HTML site from a
+    description previewed. Packaged app: `npm run desktop:dir` produces a signed app with the
+    packages inside (`Resources/site-deps`), and that app's own runtime builds a site offline.
+    Not yet verified: the packaged app's window running a whole project (create, build, and
+    preview from the app itself).
+
+- 2026-10-23: **Project workspace screens, Check for Updates, and the About link removed
+  from the app.**
+  - Each workspace project has its own page (`/projects/:id`) with four tabs: **Chat**
+    (Ask or Build, conversations kept per project), **Files** (browse, open text files,
+    new file/folder, rename, Move to Trash, Restore, Add files, Empty Trash), **Changes**
+    (review each diff, Apply changes, Not now, Undo these changes), and **Preview** (the
+    website in a sandboxed frame with Phone, Tablet and Desktop widths). Header buttons:
+    Copy path, Show in Finder, Export .zip.
+  - Build changes open in the Changes tab for review. Undone changes show as "Undone";
+    failed applies show as "Not applied".
+  - The Projects list uses the new project form (Workspace or Existing folder, with
+    starting templates). Workspace projects open their workspace page, and their delete
+    confirmation has an "Also permanently delete this project's files" choice.
+  - The sidebar's "About" item (which opened the public website page inside the app) is
+    removed. The `/web` page itself still serves the public website.
+  - VYXO menu → **Check for Updates…** (Help menu on Windows/Linux). It says when you are
+    up to date, when a check fails, and starts the update if one exists. Background
+    checks stay silent.
+  - Verified: typecheck, lint, and all 384 tests pass. In a separate copy of the app with
+    temporary data and the real model (`qwen3.5:9b`): created a website project, asked
+    for a change in Build, reviewed and applied it, saw the preview update, undid it,
+    created/trashed/restored a file, and deleted a project together with its files.
+    Not yet verified: the packaged desktop app (its preview frame and the new menu item).
+  - Note: the copy of VYXO in `/Applications` is 0.2.0, which predates the in-app
+    updater. It needs one manual install of a newer release; updates after that can
+    come from inside the app.
 
 - 2026-10-20: **In-app updates that install themselves** (0.2.1). Builds without a
   paid Apple certificate cannot use macOS's updater, so `desktop/inplace-update.cjs`

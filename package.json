@@ -27,14 +27,16 @@
     "build": "next build",
     "desktop:dev": "SHIPSTUDIO_DESKTOP_DEV=1 electron .",
     "desktop:picker-check": "node desktop/picker-e2e.cjs",
-    "build:desktop": "SHIPSTUDIO_DESKTOP=1 SHIPSTUDIO_DESKTOP_BUILD=1 next build",
-    "desktop:dir": "npm run build:desktop && electron-builder --config electron-builder.yml --mac dir --publish never",
-    "desktop:dmg": "npm run build:desktop && electron-builder --config electron-builder.yml --mac dmg zip --publish never",
+    "build:desktop": "node scripts/build-desktop.mjs",
+    "desktop:dir": "npm run site-deps:prepare && npm run build:desktop && electron-builder --config electron-builder.yml --mac dir --publish never",
+    "desktop:dmg": "npm run site-deps:prepare && npm run build:desktop && electron-builder --config electron-builder.yml --mac dmg zip --publish never",
     "desktop:smoke": "node desktop/unpacked-smoke.cjs",
     "start": "next start -H 127.0.0.1 -p 3697",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "node --test"
+    "test": "node --test",
+    "site-deps:prepare": "node scripts/prepare-site-deps.mjs",
+    "desktop:win": "npm run site-deps:prepare && npm run build:desktop && electron-builder --config electron-builder.yml --win nsis --publish never"
   },
   "dependencies": {
     "agentation": "^3.0.1",

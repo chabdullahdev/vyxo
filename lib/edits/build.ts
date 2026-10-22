@@ -11,7 +11,8 @@ import {
 } from "./types.ts";
 
 export interface RawProposalOperation {
-  op: ProposalOperationType;
+  /** "write" (from the file-block format) means create or modify, decided by whether the file exists. */
+  op: ProposalOperationType | "write";
   path: string;
   content: string | null;
 }
@@ -43,6 +44,134 @@ function extractJson(text: string): unknown {
     }
   }
   throw new EditError("INVALID_PROPOSAL", "The model did not return a readable JSON proposal.");
+}
+
+const FILE_HEADER = /^<<<FILE[ \t]+(.+?)[ \t]*>>>[ \t]*$/;
+const DELETE_HEADER = /^<<<DELETE[ \t]+(.+?)[ \t]*>>>[ \t]*$/;
+const END_MARKER = /^<<<END>>>[ \t]*$/;
+const MARKER_START = /^<<<(?:FILE|DELETE|END)\b/;
+
+function cleanBlockPath(raw: string): string {
+  return raw
+    .trim()
+    .replace(/^[`'"]+|[`'"]+$/g, "")
+    .replace(/^\.\//, "")
+    .trim();
+}
+
+/** A model sometimes wraps a whole file in one markdown fence even when told not to. Remove only that. */
+function unwrapFence(lines: string[]): string[] {
+  if (lines.length >= 2 && /^```[\w+-]*[ \t]*$/.test(lines[0]) && /^```[ \t]*$/.test(lines[lines.length - 1])) {
+    return lines.slice(1, -1);
+  }
+  return lines;
+}
+
+/**
+ * Read the file-block format:
+ *
+ *   SUMMARY: what changed
+ *   <<<FILE path>>>
+ *   the complete file
+ *   <<<END>>>
+ *   <<<DELETE path>>>
+ *
+ * Returns null if the text has no file markers at all. A block that never closes is accepted only when
+ * `finished` says the model stopped by itself; if it ran out of room the answer is rejected rather than
+ * saving half a file.
+ */
+export function parseBlockOutput(text: string, finished: boolean): RawProposal | null {
+  const lines = text.replace(/\r\n?/g, "\n").split("\n");
+  const operations: RawProposalOperation[] = [];
+  const summaryLines: string[] = [];
+  let current: { path: string; lines: string[] } | null = null;
+  let sawMarker = false;
+  let cutOff = false;
+
+  const closeCurrent = () => {
+    if (!current) return;
+    const body = unwrapFence(current.lines);
+    // Drop blank lines at both ends, then end the file with exactly one newline.
+    while (body.length > 0 && body[body.length - 1].trim() === "") body.pop();
+    while (body.length > 0 && body[0].trim() === "") body.shift();
+    operations.push({ op: "write", path: current.path, content: body.length > 0 ? `${body.join("\n")}\n` : "" });
+    current = null;
+  };
+
+  for (const line of lines) {
+    const file = FILE_HEADER.exec(line);
+    const del = DELETE_HEADER.exec(line);
+    if (file || del) {
+      sawMarker = true;
+      closeCurrent(); // a new block also ends one the model forgot to close
+      if (del) {
+        operations.push({ op: "delete", path: cleanBlockPath(del[1]), content: null });
+      } else {
+        current = { path: cleanBlockPath((file as RegExpExecArray)[1]), lines: [] };
+      }
+      continue;
+    }
+    if (END_MARKER.test(line)) {
+      sawMarker = true;
+      closeCurrent();
+      continue;
+    }
+    if (current) {
+      current.lines.push(line);
+    } else if (operations.length === 0 && !MARKER_START.test(line)) {
+      summaryLines.push(line);
+    }
+  }
+
+  if (current) {
+    if (finished) closeCurrent();
+    else cutOff = true;
+  }
+  if (!sawMarker) return null;
+  if (cutOff) {
+    throw new EditError("INVALID_PROPOSAL", "The assistant's answer was cut off before the last file was finished, so nothing was changed. Try asking for a smaller change.");
+  }
+
+  const summaryText = summaryLines
+    .join(" ")
+    .replace(/^\s*SUMMARY:\s*/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  const summary =
+    summaryText.length > 0
+      ? summaryText.slice(0, MAX_PROPOSAL_SUMMARY_CHARS)
+      : `Updated ${operations.length} file${operations.length === 1 ? "" : "s"}.`;
+  return { summary, operations };
+}
+
+export type BuilderReading =
+  | { kind: "changes"; proposal: RawProposal }
+  | { kind: "answer"; text: string };
+
+/**
+ * Read what the assistant said in Build mode. File blocks (or the older JSON form) are changes to review;
+ * plain text with no files is an answer to show in the chat, not an error.
+ */
+export function readBuilderOutput(text: string, finished: boolean): BuilderReading {
+  const blocks = parseBlockOutput(text, finished);
+  if (blocks && blocks.operations.length > 0) {
+    if (blocks.operations.length > MAX_PROPOSAL_OPERATIONS) {
+      throw new EditError("LIMIT_EXCEEDED", `A proposal may contain at most ${MAX_PROPOSAL_OPERATIONS} operations.`);
+    }
+    return { kind: "changes", proposal: blocks };
+  }
+  try {
+    return { kind: "changes", proposal: parseProposalOutput(text) };
+  } catch {
+    // Not JSON either.
+  }
+  const answer = text.replace(/\s*<<<END>>>\s*$/g, "").trim();
+  if (answer.length === 0) throw new EditError("INVALID_PROPOSAL", "The assistant did not give an answer.");
+  // Broken JSON is an unfinished proposal, not something to show the person as an answer.
+  if (/^(?:```(?:json)?\s*)?\{/.test(answer) && /"(?:operations|summary)"\s*:/.test(answer)) {
+    throw new EditError("INVALID_PROPOSAL", "The assistant's answer could not be read.");
+  }
+  return { kind: "answer", text: answer };
 }
 
 export function parseProposalOutput(text: string): RawProposal {
@@ -141,7 +270,9 @@ export async function buildProposalOperations(
     }
     seen.add(target.relativePath);
 
-    if (entry.op === "create") {
+    const operation: ProposalOperationType = entry.op === "write" ? (target.exists ? "modify" : "create") : entry.op;
+
+    if (operation === "create") {
       if (target.exists) {
         throw new EditError("INVALID_OPERATION", `${target.relativePath} already exists; propose a modify instead.`);
       }
@@ -172,7 +303,7 @@ export async function buildProposalOperations(
       throw mapFileError(error);
     }
 
-    if (entry.op === "delete") {
+    if (operation === "delete") {
       operations.push({
         op: "delete",
         path: target.relativePath,
@@ -188,6 +319,8 @@ export async function buildProposalOperations(
     if (content.length > MAX_PROPOSAL_FILE_BYTES) {
       throw new EditError("TOO_LARGE", `${target.relativePath} is larger than the allowed proposal size.`);
     }
+    // Rewriting a file with the same text is not a change; leave it out rather than ask for approval.
+    if (content === existing.content) continue;
     totalBytes += content.length;
     operations.push({
       op: "modify",
@@ -201,6 +334,9 @@ export async function buildProposalOperations(
 
   if (totalBytes > MAX_PROPOSAL_TOTAL_BYTES) {
     throw new EditError("TOO_LARGE", "The proposal is larger than the allowed total size.");
+  }
+  if (operations.length === 0) {
+    throw new EditError("INVALID_PROPOSAL", "The assistant's answer did not change anything.");
   }
 
   return operations;

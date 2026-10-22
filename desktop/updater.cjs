@@ -40,8 +40,19 @@ function readCodesignOutput() {
  * after the new one has been downloaded and checked, and failures never interrupt the app.
  */
 function setupAutoUpdate({ app, dialog, shell, getWindow, beforeInstall }) {
-  if (!app.isPackaged) return;
-  if (process.env.SHIPSTUDIO_DESKTOP_SMOKE === "1" || process.env.VYXO_DISABLE_UPDATES === "1") return;
+  const noUpdates = {
+    checkNow() {
+      void dialog.showMessageBox({
+        type: "info",
+        title: "Updates",
+        message: "Updates are only checked in the installed VYXO app.",
+        buttons: ["OK"],
+        defaultId: 0,
+      });
+    },
+  };
+  if (!app.isPackaged) return noUpdates;
+  if (process.env.SHIPSTUDIO_DESKTOP_SMOKE === "1" || process.env.VYXO_DISABLE_UPDATES === "1") return noUpdates;
 
   // Test-only hooks for the end-to-end update check. They do nothing unless VYXO_E2E=1, and
   // an update feed can then only be a loopback address.
@@ -63,6 +74,8 @@ function setupAutoUpdate({ app, dialog, shell, getWindow, beforeInstall }) {
   let install = { ok: false, reason: "not-an-app", bundle: "" };
   let promptOpen = false;
   let busy = false;
+  // True only while the user has asked for "Check for Updates", so the background checks stay quiet.
+  let askedByUser = false;
 
   const box = (options) => {
     // In the end-to-end check, accept offers but always cancel error dialogs so nothing opens a browser.
@@ -72,6 +85,19 @@ function setupAutoUpdate({ app, dialog, shell, getWindow, beforeInstall }) {
       ? dialog.showMessageBox(window, options)
       : dialog.showMessageBox(options);
   };
+
+  autoUpdater.on("update-not-available", async (info) => {
+    if (!askedByUser) return;
+    askedByUser = false;
+    await box({
+      type: "info",
+      title: "VYXO is up to date",
+      message: `You have the latest version (${app.getVersion()}).`,
+      detail: info?.version ? `The newest release is ${info.version}.` : "",
+      buttons: ["OK"],
+      defaultId: 0,
+    });
+  });
 
   const openReleases = () => shell.openExternal(RELEASES_URL);
 
@@ -153,6 +179,7 @@ function setupAutoUpdate({ app, dialog, shell, getWindow, beforeInstall }) {
   }
 
   autoUpdater.on("update-available", async (info) => {
+    askedByUser = false;
     if (promptOpen || busy) return;
     promptOpen = true;
     try {
@@ -198,7 +225,19 @@ function setupAutoUpdate({ app, dialog, shell, getWindow, beforeInstall }) {
   });
 
   autoUpdater.on("error", async () => {
-    // Offline or rate-limited checks stay silent. A failed standard-updater download offers the manual route.
+    if (askedByUser) {
+      askedByUser = false;
+      await box({
+        type: "warning",
+        title: "Couldn't check for updates",
+        message: "VYXO couldn't check for updates right now.",
+        detail: "Check your internet connection and try again.",
+        buttons: ["OK"],
+        defaultId: 0,
+      });
+      return;
+    }
+    // Offline or rate-limited background checks stay silent. A failed standard-updater download offers the manual route.
     if (mode !== "squirrel" || !busy) return;
     busy = false;
     const { response } = await box({
@@ -231,6 +270,24 @@ function setupAutoUpdate({ app, dialog, shell, getWindow, beforeInstall }) {
       setInterval(check, CHECK_INTERVAL_MS).unref();
     }, delay).unref();
   });
+
+  /** Called from the "Check for Updates" menu item. Says so when nothing is new, and when the check fails. */
+  const checkNow = () => {
+    if (promptOpen || busy) {
+      void box({
+        type: "info",
+        title: "Update in progress",
+        message: "VYXO is already getting an update.",
+        buttons: ["OK"],
+        defaultId: 0,
+      });
+      return;
+    }
+    askedByUser = true;
+    autoUpdater.checkForUpdates().catch(() => {});
+  };
+
+  return { checkNow };
 }
 
 module.exports = { setupAutoUpdate, isDeveloperSigned, RELEASES_URL };

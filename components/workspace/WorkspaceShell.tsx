@@ -37,7 +37,6 @@ const workspaceNavigation: NavigationItem[] = [
 const systemNavigation: NavigationItem[] = [
   { label: "Research", href: "/research", icon: "research" },
   { label: "Settings", href: "/settings", icon: "settings" },
-  { label: "About", href: "/web", icon: "about" },
 ];
 
 function Icon({ name, className = "h-4 w-4" }: { name: IconName; className?: string }) {

@@ -36,7 +36,7 @@ async function requestJson<T>(
   }
 }
 
-function toMessageViews(conversation: Conversation): ChatMessageView[] {
+export function toMessageViews(conversation: Conversation): ChatMessageView[] {
   return conversation.messages.map((message) => ({
     id: message.id,
     role: message.role,

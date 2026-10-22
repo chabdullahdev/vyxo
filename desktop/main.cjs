@@ -6,7 +6,7 @@ const net = require("node:net");
 const os = require("node:os");
 const path = require("node:path");
 const { promisify } = require("node:util");
-const { app, BrowserWindow, dialog, session, shell, utilityProcess } = require("electron");
+const { app, BrowserWindow, dialog, Menu, session, shell, utilityProcess } = require("electron");
 const { externalUrlToOpen } = require("./links.cjs");
 const { setupAutoUpdate } = require("./updater.cjs");
 
@@ -52,7 +52,7 @@ if (singleInstanceLock) {
 
 function inheritedRuntimeEnvironment() {
   const environment = {};
-  for (const key of ["HOME", "PATH", "TMPDIR", "TMP", "TEMP", "LANG", "LC_ALL", "USER", "LOGNAME", "OLLAMA_BASE_URL", "DEFAULT_MODEL", "VYXO_DATA_DIR"]) {
+  for (const key of ["HOME", "PATH", "PATHEXT", "SYSTEMROOT", "USERPROFILE", "APPDATA", "LOCALAPPDATA", "TMPDIR", "TMP", "TEMP", "LANG", "LC_ALL", "USER", "USERNAME", "LOGNAME", "OLLAMA_BASE_URL", "DEFAULT_MODEL", "VYXO_DATA_DIR"]) {
     const value = process.env[key];
     if (typeof value === "string") environment[key] = value;
   }
@@ -93,6 +93,8 @@ function launchNextServer(port, token, origin) {
 
   const environment = {
     ...inheritedRuntimeEnvironment(),
+    // Where the packages for Next.js websites are. In development they come from the project's own node_modules.
+    ...(IS_PACKAGED ? { VYXO_SITE_DEPS: path.join(process.resourcesPath, "site-deps", "node_modules") } : {}),
     NODE_ENV: IS_PACKAGED ? "production" : "development",
     SHIPSTUDIO_DESKTOP: "1",
     SHIPSTUDIO_DESKTOP_TOKEN: token,
@@ -539,17 +541,57 @@ async function runFolderPickerSmoke() {
   console.info("[desktop] Picker smoke passed: read-only handle resolved and src/sample.ts was displayed and selected.");
 }
 
+/**
+ * The menu bar. Keeps the standard Edit menu (copy and paste shortcuts depend on it) and adds
+ * "Check for Updates…" to the VYXO menu on Mac, or to Help on Windows and Linux.
+ */
+function installAppMenu(checkForUpdates) {
+  const updateItem = { label: "Check for Updates…", click: () => checkForUpdates() };
+  const macAppMenu =
+    process.platform === "darwin"
+      ? [
+          {
+            label: app.name,
+            submenu: [
+              { role: "about" },
+              { type: "separator" },
+              updateItem,
+              { type: "separator" },
+              { role: "services" },
+              { type: "separator" },
+              { role: "hide" },
+              { role: "hideOthers" },
+              { role: "unhide" },
+              { type: "separator" },
+              { role: "quit" },
+            ],
+          },
+        ]
+      : [];
+  const helpMenu = process.platform === "darwin" ? [] : [{ role: "help", submenu: [updateItem] }];
+  Menu.setApplicationMenu(
+    Menu.buildFromTemplate([
+      ...macAppMenu,
+      { role: "editMenu" },
+      { role: "viewMenu" },
+      { role: "windowMenu" },
+      ...helpMenu,
+    ]),
+  );
+}
+
 async function startDesktop() {
   if (IS_PACKAGED || process.env.SHIPSTUDIO_DESKTOP_DEV === "1") {
     const origin = await startManagedServer();
     await createWindow(origin);
-    setupAutoUpdate({
+    const updates = setupAutoUpdate({
       app,
       dialog,
       shell,
       getWindow: () => desktopWindow,
       beforeInstall: shutdown,
     });
+    installAppMenu(() => updates.checkNow());
     if (process.env.SHIPSTUDIO_DESKTOP_PICKER_SMOKE === "1") {
       await runFolderPickerSmoke();
       if (process.env.SHIPSTUDIO_DESKTOP_SMOKE !== "1") app.quit();

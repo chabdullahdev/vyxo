@@ -119,11 +119,12 @@ export function SettingsPanel() {
 
       <Section
         title="Internet access"
-        description="This phase makes no external network requests."
+        description="Nothing is sent anywhere unless you press Push to GitHub on a project."
       >
         <ul className="space-y-2 text-sm text-[var(--muted)]">
-          <li>The app connects only to Ollama at 127.0.0.1:11434 — your own machine.</li>
-          <li>Scheduled conversations, projects, files, and memories are never sent to external services.</li>
+          <li>The app connects to Ollama at 127.0.0.1:11434 — your own machine — for chat.</li>
+          <li>Git on a project runs on this Mac. Only when you press Push to GitHub are that project&apos;s saved snapshots sent to the GitHub repository you connected.</li>
+          <li>Conversations, memories, and files are never sent to external services otherwise.</li>
           <li>Project file reading uses your browser/desktop file permissions and stays local.</li>
           <li>There is no cloud sync, no accounts, and no external AI provider.</li>
         </ul>

@@ -40,6 +40,21 @@ export function resolveDataDirectory(
   return join(env.XDG_DATA_HOME ?? join(home, ".local", "share"), DATA_FOLDER_NAME);
 }
 
+export const PROJECTS_FOLDER_NAME = "VYXO Projects";
+
+/**
+ * Where new workspace projects are created. It is a normal, visible folder in the user's home
+ * directory (not Documents, Desktop, or Downloads, which macOS guards with extra permission
+ * prompts) so people can open, back up, and share their own files.
+ */
+export function resolveProjectsDirectory(
+  env: Environment = process.env,
+  home: string = homedir(),
+): string {
+  if (env.VYXO_PROJECTS_DIR) return env.VYXO_PROJECTS_DIR;
+  return join(home, PROJECTS_FOLDER_NAME);
+}
+
 /** The folder early builds used (macOS only). */
 export function legacyDataDirectory(
   platform: NodeJS.Platform = process.platform,

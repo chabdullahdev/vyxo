@@ -15,6 +15,7 @@ export class OllamaError extends Error {
 interface OllamaStreamChunk {
   error?: string;
   done?: boolean;
+  done_reason?: string;
   message?: { role?: string; content?: string };
 }
 
@@ -77,6 +78,9 @@ export class OllamaProvider implements ModelProvider {
   async *streamChat({
     messages,
     signal,
+    numCtx,
+    maxTokens,
+    onFinish,
   }: StreamChatOptions): AsyncGenerator<string, void, unknown> {
     const controller = new AbortController();
     const abort = () => controller.abort();
@@ -93,7 +97,10 @@ export class OllamaProvider implements ModelProvider {
           messages,
           stream: true,
           think: false,
-          options: { num_ctx: this.info.contextTokens },
+          options: {
+            num_ctx: numCtx ?? this.info.contextTokens,
+            ...(maxTokens ? { num_predict: maxTokens } : {}),
+          },
         }),
         signal: controller.signal,
         cache: "no-store",
@@ -117,6 +124,7 @@ export class OllamaProvider implements ModelProvider {
     const decoder = new TextDecoder();
     const filter = new ThinkFilter();
     let buffer = "";
+    let doneReason: string | null = null;
 
     try {
       while (true) {
@@ -145,6 +153,7 @@ export class OllamaProvider implements ModelProvider {
               "The local model returned an error while generating.",
             );
           }
+          if (chunk.done) doneReason = chunk.done_reason ?? "stop";
 
           const text = chunk.message?.content;
           if (text) {
@@ -156,6 +165,7 @@ export class OllamaProvider implements ModelProvider {
 
       const tail = filter.flush();
       if (tail) yield tail;
+      onFinish?.({ doneReason });
     } finally {
       clearTimeout(timeout);
       signal?.removeEventListener("abort", abort);

@@ -29,6 +29,23 @@ extraResources:
     to: next-server/.next-desktop/static
     filter:
       - "**/*"
+  # The packages a Next.js website needs (see scripts/prepare-site-deps.mjs). Shipped so nothing is downloaded.
+  - from: build/site-deps/node_modules
+    to: site-deps/node_modules
+    filter:
+      - "**/*"
+win:
+  icon: desktop/resources/icon.png
+  target:
+    - target: nsis
+      arch:
+        - x64
+  # Not signed yet: Windows shows an "unknown publisher" warning until a code-signing certificate is added.
+  signExecutable: false
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
 mac:
   category: public.app-category.productivity
   icon: desktop/resources/icon.icns

@@ -12,6 +12,7 @@ import {
   type Conversation,
 } from "@/lib/conversations/store";
 import { loadProjectContextMessage } from "@/lib/projects/context";
+import { isolatesGlobalMemory } from "@/lib/projects/isolation";
 import { projectStore } from "@/lib/projects/store";
 import { gatherProjectFileEvidence } from "@/lib/files/retrieval";
 import { projectFileService } from "@/lib/files/service";
@@ -410,14 +411,14 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        const memoryContext = await loadMemoryContext(
-          memoryStore,
-          lastUserMessage.content,
-          {
-            maxResults: MEMORY_MAX_RESULTS,
-            maxContextChars: MEMORY_MAX_CONTEXT_CHARS,
-          },
-        );
+        // A workspace project is its own space: global memories are not offered inside it.
+        const memoryIsolated = await isolatesGlobalMemory(projectStore, conversation?.projectId);
+        const memoryContext = memoryIsolated
+          ? null
+          : await loadMemoryContext(memoryStore, lastUserMessage.content, {
+              maxResults: MEMORY_MAX_RESULTS,
+              maxContextChars: MEMORY_MAX_CONTEXT_CHARS,
+            });
         const messages: ChatMessage[] = [
           ...buildSystemMessages(memoryContext, {
             codeExplanation:

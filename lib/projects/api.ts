@@ -1,4 +1,8 @@
 import type { ConversationStore } from "../conversations/store.ts";
+import { resolveProjectsDirectory } from "../storage/location.ts";
+import { createManagedProject, removeWorkspaceFolder } from "../workspace/create.ts";
+import { resolveSiteDepsDir } from "../workspace/runtime.ts";
+import { workspaceErrorResponse } from "../workspace/http.ts";
 import type { ProjectStore } from "./store.ts";
 
 const MAX_BODY_BYTES = 20_000;
@@ -23,6 +27,8 @@ function errorCode(error: unknown): string | undefined {
 }
 
 function toErrorResponse(error: unknown): Response {
+  const workspace = workspaceErrorResponse(error);
+  if (workspace) return workspace;
   const code = errorCode(error);
 
   if (code === "NOT_FOUND") {
@@ -134,22 +140,47 @@ export async function listProjectsResponse(
   }
 }
 
+export interface WorkspaceOptions {
+  /** Where workspace projects live. Defaults to the visible projects folder in the home directory. */
+  projectsDir?: string;
+  /** Where the Next.js site packages are. Defaults to the ones that ship with the app. */
+  siteDepsDir?: string | null;
+}
+
 export async function createProjectResponse(
   store: ProjectStore,
   request: Request,
+  options: WorkspaceOptions = {},
 ): Promise<Response> {
   const parsed = await readJsonObject(request);
   if (!parsed.ok) return parsed.response;
 
-  const { name, description } = parsed.body;
+  const { name, description, kind, template } = parsed.body;
   if (typeof name !== "string") {
     return jsonResponse({ error: "`name` must be a string." }, 400);
   }
   if (description !== undefined && typeof description !== "string") {
     return jsonResponse({ error: "`description` must be a string." }, 400);
   }
+  if (kind !== undefined && kind !== "connected" && kind !== "managed") {
+    return jsonResponse({ error: "`kind` must be \"managed\" or \"connected\"." }, 400);
+  }
+  if (template !== undefined && typeof template !== "string") {
+    return jsonResponse({ error: "`template` must be a string." }, 400);
+  }
 
   try {
+    if (kind === "managed") {
+      const project = await createManagedProject(
+        {
+          store,
+          projectsDir: options.projectsDir ?? resolveProjectsDirectory(),
+          siteDepsDir: "siteDepsDir" in options ? options.siteDepsDir : resolveSiteDepsDir(),
+        },
+        { name, description, template: template ?? "blank" },
+      );
+      return jsonResponse({ project }, 201);
+    }
     const project = await store.createProject(name, description);
     return jsonResponse({ project }, 201);
   } catch (error) {
@@ -225,17 +256,40 @@ export async function deleteProjectResponse(
   store: ProjectStore,
   conversationStore: ConversationStore,
   id: string,
+  options: WorkspaceOptions & { deleteFiles?: boolean } = {},
 ): Promise<Response> {
   if (!id) return missingId();
 
   try {
-    await store.getProject(id);
+    const project = await store.getProject(id);
+    const projectsDir = options.projectsDir ?? resolveProjectsDirectory();
+
+    // Check that the files can be safely deleted before anything is removed, so a refusal leaves everything intact.
+    if (options.deleteFiles) {
+      if (project.kind !== "managed") {
+        return jsonResponse({ error: "Only workspace projects have files that VYXO can delete." }, 400);
+      }
+    }
+
     await conversationStore.clearConversationsProject(id);
     const deleted = await store.deleteProject(id);
     if (!deleted) {
       return jsonResponse({ error: "Project not found." }, 404);
     }
-    return jsonResponse({ deleted: true }, 200);
+
+    // The record is gone either way; the files are removed only when asked, and only if they are verifiably this project's.
+    let filesRemoved = false;
+    let filesNote: string | null = null;
+    if (options.deleteFiles) {
+      try {
+        await removeWorkspaceFolder(project, projectsDir);
+        filesRemoved = true;
+      } catch (error) {
+        filesNote = error instanceof Error ? error.message : "The files could not be deleted.";
+      }
+    }
+    if (project.kind !== "managed") return jsonResponse({ deleted: true }, 200);
+    return jsonResponse({ deleted: true, filesRemoved, filesNote, folder: project.sourceFolder }, 200);
   } catch (error) {
     return toErrorResponse(error);
   }

@@ -1,5 +1,7 @@
 # Ship Studio Project
 
+> **Developing VYXO itself (the desktop app in this folder)?** Read `DEVELOPMENT.md` first. It is the shared guide for people and AI agents on Mac and Windows. The rules below are for building a website inside Ship Studio.
+
 This is a Next.js 14+ project with Tailwind CSS. You're helping a **non-developer** build a website. Keep explanations simple and jargon-free.
 
 ---

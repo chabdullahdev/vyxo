@@ -23,11 +23,23 @@ const FILE_MODE = 0o600;
 const MAX_ID_LENGTH = 256;
 const MAX_ID_ATTEMPTS = 10;
 
+/**
+ * "connected": the user pointed VYXO at a folder they already had (read-only unless they approve edits).
+ * "managed": VYXO created the folder inside the projects directory and looks after its files.
+ * Projects saved before this field existed read back as "connected".
+ */
+export type ProjectKind = "connected" | "managed";
+
+const PROJECT_KINDS: readonly ProjectKind[] = ["connected", "managed"];
+const TEMPLATE_PATTERN = /^[a-z0-9][a-z0-9-]{0,39}$/;
+
 export interface Project {
   id: string;
   name: string;
   description: string;
   context: ProjectContext;
+  kind: ProjectKind;
+  template: string | null;
   sourceFolder: string | null;
   createdAt: string;
   updatedAt: string;
@@ -74,6 +86,14 @@ export interface ProjectStoreOptions {
   maxNameLength?: number;
   maxDescriptionLength?: number;
   maxProjects?: number;
+}
+
+export interface CreateProjectExtras {
+  /** Supplied when the project's folder had to be named after the project before it was saved. */
+  id?: string;
+  kind?: ProjectKind;
+  template?: string;
+  sourceFolder?: string;
 }
 
 export interface UpdateProjectInput {
@@ -263,6 +283,8 @@ export function validateProjectDocument(
       name?: unknown;
       description?: unknown;
       context?: unknown;
+      kind?: unknown;
+      template?: unknown;
       sourceFolder?: unknown;
       createdAt?: unknown;
       updatedAt?: unknown;
@@ -309,11 +331,31 @@ export function validateProjectDocument(
 
     const sourceFolder = normalizeSourceFolder(record.sourceFolder, "CORRUPT_DATA");
 
+    let kind: ProjectKind = "connected";
+    if (record.kind !== undefined) {
+      if (!PROJECT_KINDS.includes(record.kind as ProjectKind)) {
+        throw new ProjectError("CORRUPT_DATA", `Project ${record.id} has an invalid kind.`);
+      }
+      kind = record.kind as ProjectKind;
+    }
+    let template: string | null = null;
+    if (record.template !== undefined && record.template !== null) {
+      if (typeof record.template !== "string" || !TEMPLATE_PATTERN.test(record.template)) {
+        throw new ProjectError("CORRUPT_DATA", `Project ${record.id} has an invalid template.`);
+      }
+      template = record.template;
+    }
+    if (kind === "managed" && sourceFolder === null) {
+      throw new ProjectError("CORRUPT_DATA", `Project ${record.id} is a workspace project without a folder.`);
+    }
+
     validated.push({
       id: record.id,
       name,
       description,
       context,
+      kind,
+      template,
       sourceFolder,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,
@@ -378,10 +420,27 @@ export class ProjectStore {
     });
   }
 
-  createProject(name: string, description?: string): Promise<Project> {
+  createProject(name: string, description?: string, extras: CreateProjectExtras = {}): Promise<Project> {
     return this.#exclusive(async () => {
       const normalizedName = normalizeName(name, this.#maxNameLength);
       const normalizedDescription = normalizeDescription(description, this.#maxDescriptionLength);
+      const kind = extras.kind ?? "connected";
+      if (!PROJECT_KINDS.includes(kind)) {
+        throw new ProjectError("INVALID_ARGUMENT", "The project kind is not recognised.");
+      }
+      if (extras.template !== undefined && !TEMPLATE_PATTERN.test(extras.template)) {
+        throw new ProjectError("INVALID_ARGUMENT", "The project template is not recognised.");
+      }
+      const sourceFolder = normalizeSourceFolder(extras.sourceFolder, "INVALID_FOLDER");
+      if (kind === "managed" && sourceFolder === null) {
+        throw new ProjectError("INVALID_FOLDER", "A workspace project needs its folder.");
+      }
+      if (kind === "connected" && sourceFolder !== null) {
+        throw new ProjectError("INVALID_ARGUMENT", "Connect a folder after creating the project.");
+      }
+      if (extras.id !== undefined && !isValidProjectId(extras.id)) {
+        throw new ProjectError("INVALID_ARGUMENT", "The project id is not valid.");
+      }
       const document = await this.#read();
       if (document.projects.length >= this.#maxProjects) {
         throw new ProjectError(
@@ -389,14 +448,19 @@ export class ProjectStore {
           `The project limit of ${this.#maxProjects} has been reached. Delete or archive older projects.`,
         );
       }
-      const id = this.#generateId(document);
+      if (extras.id !== undefined && document.projects.some((entry) => entry.id === extras.id)) {
+        throw new ProjectError("DUPLICATE_ID", "A project with that id already exists.");
+      }
+      const id = extras.id ?? this.#generateId(document);
       const now = this.#clock().toISOString();
       const project: Project = {
         id,
         name: normalizedName,
         description: normalizedDescription,
         context: createEmptyProjectContext(),
-        sourceFolder: null,
+        kind,
+        template: extras.template ?? null,
+        sourceFolder,
         createdAt: now,
         updatedAt: now,
         archived: false,
@@ -455,6 +519,9 @@ export class ProjectStore {
       const project = document.projects.find((entry) => entry.id === id);
       if (!project) {
         throw new ProjectError("NOT_FOUND", "Project not found.");
+      }
+      if (project.kind === "managed") {
+        throw new ProjectError("INVALID_FOLDER", "This project's folder is managed by VYXO and cannot be changed.");
       }
       project.sourceFolder = normalized;
       project.updatedAt = this.#clock().toISOString();
