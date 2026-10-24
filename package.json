@@ -25,12 +25,13 @@
   "scripts": {
     "dev": "next dev -H 127.0.0.1 -p 3697",
     "build": "next build",
-    "desktop:dev": "SHIPSTUDIO_DESKTOP_DEV=1 electron .",
+    "desktop:dev": "cross-env SHIPSTUDIO_DESKTOP_DEV=1 electron .",
     "desktop:picker-check": "node desktop/picker-e2e.cjs",
     "build:desktop": "node scripts/build-desktop.mjs",
     "desktop:dir": "npm run site-deps:prepare && npm run build:desktop && electron-builder --config electron-builder.yml --mac dir --publish never",
     "desktop:dmg": "npm run site-deps:prepare && npm run build:desktop && electron-builder --config electron-builder.yml --mac dmg zip --publish never",
     "desktop:smoke": "node desktop/unpacked-smoke.cjs",
+    "desktop:test": "node scripts/desktop-test.mjs",
     "start": "next start -H 127.0.0.1 -p 3697",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
@@ -50,11 +51,15 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cross-env": "^10.1.0",
     "electron": "^44.7.0",
     "electron-builder": "^26.15.3",
     "eslint": "^9",
     "eslint-config-next": "16.4.1",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "allowScripts": {
+    "electron": true
   }
 }

@@ -5,6 +5,7 @@ import { RECOMMENDED_MODEL } from "@/lib/models/recommended";
 import {
   APPLE_OPEN_APPS_URL,
   DOWNLOAD_URL,
+  DOWNLOAD_WINDOWS_URL,
   ISSUES_URL,
   OLLAMA_URL,
   PLATFORM_NOTE,
@@ -90,7 +91,7 @@ const steps = [
   },
   {
     title: "Open VYXO",
-    body: "Download the Mac app (macOS on Apple Silicon), or run it from source. VYXO finds your models by itself and tells you if a step is missing. The first launch needs one extra approval, shown below.",
+    body: "Download the app for Mac (Apple Silicon) or Windows (64-bit), or run it from source. VYXO finds your models by itself and tells you if a step is missing. The first launch needs one extra approval, shown below.",
     code: null,
   },
 ];
@@ -155,6 +156,14 @@ function FirstLaunch() {
         </a>
         .
       </p>
+
+      <h4 className="mt-6 font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--silver)]">Windows</h4>
+      <p className="mt-3 text-[15px] leading-7 text-[var(--muted)]">
+        The installer is not signed with a paid certificate either, so Windows shows{" "}
+        <em className="not-italic text-[var(--silver)]">&ldquo;Windows protected your PC.&rdquo;</em> Click{" "}
+        <strong className="font-medium text-[var(--silver)]">More info</strong>, then{" "}
+        <strong className="font-medium text-[var(--silver)]">Run anyway</strong>. You only do this once.
+      </p>
     </div>
   );
 }
@@ -192,6 +201,12 @@ export default function WebPage() {
                   className="rounded-full bg-[var(--foreground)] px-6 py-3.5 text-sm font-medium text-[var(--background)] transition hover:bg-[var(--silver)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
                 >
                   Download for Mac
+                </a>
+                <a
+                  href={DOWNLOAD_WINDOWS_URL}
+                  className="rounded-full bg-[var(--foreground)] px-6 py-3.5 text-sm font-medium text-[var(--background)] transition hover:bg-[var(--silver)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
+                >
+                  Download for Windows
                 </a>
                 <a
                   href={REPO_URL}
@@ -407,6 +422,12 @@ export default function WebPage() {
               Download for Mac
             </a>
             <a
+              href={DOWNLOAD_WINDOWS_URL}
+              className="rounded-full bg-[var(--foreground)] px-7 py-4 text-sm font-medium text-[var(--background)] transition hover:bg-[var(--silver)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
+            >
+              Download for Windows
+            </a>
+            <a
               href={ISSUES_URL}
               className="text-sm text-[var(--silver)] underline underline-offset-[6px] transition hover:text-[var(--foreground)]"
             >
@@ -415,7 +436,7 @@ export default function WebPage() {
           </div>
           <p className="mt-6 max-w-lg text-sm leading-6 text-[var(--silver)]">{PLATFORM_NOTE}</p>
           <p className="mt-2 max-w-lg text-sm leading-6 text-[var(--muted)]">
-            The first launch needs one approval because the app is not signed with a paid Apple certificate. The steps
+            The first launch needs one approval because the app is not signed with a paid certificate. The steps
             are in <a href="#start" className="underline underline-offset-4 hover:text-[var(--foreground)]">Get started</a>.
           </p>
         </div>

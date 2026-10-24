@@ -6,17 +6,13 @@ const net = require("node:net");
 const os = require("node:os");
 const path = require("node:path");
 const projectRoot = path.resolve(__dirname, "..");
+// The picker step types into the native folder panel with AppleScript, which only exists on macOS.
+const pickerAutomated = process.platform === "darwin";
 const appExecutable =
   process.env.SHIPSTUDIO_SMOKE_APP_EXECUTABLE ??
-  path.join(
-    projectRoot,
-    "release",
-    "mac-arm64",
-    "VYXO.app",
-    "Contents",
-    "MacOS",
-    "VYXO",
-  );
+  (process.platform === "win32"
+    ? path.join(projectRoot, "release", "win-unpacked", "VYXO.exe")
+    : path.join(projectRoot, "release", "mac-arm64", "VYXO.app", "Contents", "MacOS", "VYXO"));
 
 function wait(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
@@ -295,8 +291,14 @@ async function main() {
       env: {
         ...process.env,
         HOME: testHome,
+        // Windows finds the home and data folders through these instead of HOME.
+        USERPROFILE: testHome,
+        APPDATA: path.join(testHome, "AppData", "Roaming"),
+        LOCALAPPDATA: path.join(testHome, "AppData", "Local"),
+        VYXO_DATA_DIR: path.join(testHome, "VYXO Data"),
+        VYXO_PROJECTS_DIR: path.join(testHome, "VYXO Projects"),
         SHIPSTUDIO_DESKTOP_SMOKE: "1",
-        SHIPSTUDIO_DESKTOP_PICKER_SMOKE: "1",
+        SHIPSTUDIO_DESKTOP_PICKER_SMOKE: pickerAutomated ? "1" : "0",
         SHIPSTUDIO_PICKER_FIXTURE_PATH: fixtureRoot,
       },
       stdio: ["ignore", "pipe", "pipe"],
@@ -367,12 +369,17 @@ async function main() {
     await cdp.send("Page.enable");
     await cdp.send("Network.enable");
 
-    await waitFor(
-      cdp,
-      `document.body.innerText.includes('src/sample.ts') && document.body.innerText.includes('In context')`,
-      "the Electron main process to finish the read-only project picker smoke test",
-      45_000,
-    );
+    if (pickerAutomated) {
+      await waitFor(
+        cdp,
+        `document.body.innerText.includes('src/sample.ts') && document.body.innerText.includes('In context')`,
+        "the Electron main process to finish the read-only project picker smoke test",
+        45_000,
+      );
+    } else {
+      await waitFor(cdp, `Array.from(document.querySelectorAll('button')).some((b) => b.textContent?.trim() === 'Debug')`, "the chat window to load", 45_000);
+      console.info("[unpacked-smoke] SKIPPED: the folder picker step is automated on macOS only. Check it by hand on this system.");
+    }
 
     const renderer = await evaluate(cdp, `({
       secureContext: window.isSecureContext,
@@ -383,7 +390,7 @@ async function main() {
     assert.equal(renderer.secureContext, true, "Packaged renderer must use a secure localhost origin");
     assert.equal(renderer.noNodeGlobals, true, "Renderer must not expose Node.js globals");
     assert.equal(renderer.debugButton, true, "Debug Mode should be present");
-    assert.equal(renderer.projectFileSelected, true, "Picker smoke should leave the synthetic file selected in the packaged explorer");
+    if (pickerAutomated) assert.equal(renderer.projectFileSelected, true, "Picker smoke should leave the synthetic file selected in the packaged explorer");
 
     const pageResponse = await fetch(`${serverOrigin}/chat`, { cache: "no-store" });
     const policy = pageResponse.headers.get("content-security-policy") ?? "";
@@ -407,7 +414,7 @@ async function main() {
     await waitForAssistantAnswer(cdp);
     console.info("[unpacked-smoke] Debug Mode streamed a response with the selected project file.");
 
-    await clickButton(cdp, "Remove all");
+    if (pickerAutomated) await clickButton(cdp, "Remove all");
     await clickButton(cdp, "Chat");
     const normalMode = await evaluate(cdp, `Array.from(document.querySelectorAll('button')).some((button) => button.textContent?.trim() === 'Chat' && button.getAttribute('aria-pressed') === 'true')`);
     assert.equal(normalMode, true, "Chat mode should remain available after Debug Mode");
@@ -425,7 +432,7 @@ async function main() {
     await waitForCondition(() => activeChatWasCancelled, "the Stop action to cancel the HTTP stream", 10_000);
     console.info("[unpacked-smoke] Stop cancelled the active chat request.");
 
-    console.info("[unpacked-smoke] PASS: project picker/file display, memory CRUD in isolated HOME, chat streaming/Stop, Debug Mode, API authorization, CSP, and renderer isolation.");
+    console.info(`[unpacked-smoke] PASS: ${pickerAutomated ? "project picker/file display, " : ""}memory CRUD in isolated HOME, chat streaming/Stop, Debug Mode, API authorization, CSP, and renderer isolation.`);
   } finally {
     const origin = serverOrigin;
     await cleanup();

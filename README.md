@@ -42,9 +42,12 @@ npm run desktop:dev
 VYXO detects your installed models. If Ollama isn't running or no model is
 installed, the app tells you what to do.
 
-### Download the Mac app
+### Download the app
 
-macOS on Apple Silicon only; Windows and Intel Macs are not supported yet.
+macOS on Apple Silicon (`.dmg`) and Windows 10 or 11, 64-bit (`.exe`). Intel Macs
+are not supported yet. On Windows the installer is not signed with a paid
+certificate either: when Windows says "Windows protected your PC", click
+More info, then Run anyway (once).
 Builds are attached to each
 [release](https://github.com/chabdullahdev/vyxo/releases/latest).
 
@@ -160,9 +163,9 @@ SITE.md       Detailed design notes, API schemas, and change history
 
 ## Platforms
 
-The desktop app is built for macOS on Apple Silicon. The web version runs
+The desktop app is built for macOS on Apple Silicon and for 64-bit Windows. The web version runs
 anywhere Node.js and Ollama do (`npm run dev`), with data stored in the
-platform's normal user-data folder. Windows and Linux desktop builds are not
+platform's normal user-data folder. Linux desktop builds are not
 published yet; contributions are welcome.
 
 ## Contributing

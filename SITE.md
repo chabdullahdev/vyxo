@@ -739,6 +739,25 @@ prompt-injection isolation).
 
 ## Recent Changes
 
+- 2026-10-24: **Windows app alongside the Mac app, checked on a Windows laptop.**
+  - Built `VYXO-0.2.1-x64.exe` on Windows 11 with `npm run desktop:win`. It uses the same icon artwork as
+    the Mac app (the 1024px image from `icon.icns`, now saved as `desktop/resources/icon.png`).
+  - `npm run desktop:smoke` passes on the Windows build: chat streaming and Stop, Debug Mode, memory,
+    API authorization, security headers, clean shutdown. The test now uses temporary Windows data folders
+    (`USERPROFILE`, `APPDATA`, `VYXO_DATA_DIR`, `VYXO_PROJECTS_DIR`) so it never touches real data.
+  - Not verified on Windows: the folder picker (its automatic check works on macOS only and is skipped on
+    Windows), the installed app running a project, the site build, the preview, Git, and updates.
+  - Releases: a version tag now builds the Mac and the Windows apps on GitHub and puts both in one draft release.
+  - Website: "Download for Windows" buttons next to "Download for Mac" (`/download/windows` finds the newest
+    `.exe`, falling back to the releases page), Windows first-launch steps, and an updated platform note.
+    Until a release containing a Windows build is published, the Windows button opens the releases page.
+  - `npm run desktop:dev` works on Windows (`cross-env`), Electron's download step is allowed in
+    `package.json`, and the desktop app now passes `VYXO_PROJECTS_DIR` to its server.
+  - New `npm run desktop:test` opens VYXO against a separate test folder (`~/VYXO Test`) with a sample
+    project folder, so manual testing never touches real chats, memories, or projects.
+  - Known: 118 tests already failed on Windows before these changes (same count before and after),
+    mostly path handling in `lib/edits`, `lib/files`, `lib/workspace`, and the Mac-only update swap.
+
 - 2026-10-23: **Windows build.** VYXO can be built for Windows on a Windows laptop with one command.
   - Build on the laptop: install Node.js 22 or newer and Git for Windows, copy the VYXO folder
     (without `node_modules` and `build`), then run `npm install` and `npm run desktop:win`. The
