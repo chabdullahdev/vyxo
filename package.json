@@ -31,7 +31,7 @@
     "desktop:dir": "npm run site-deps:prepare && npm run build:desktop && electron-builder --config electron-builder.yml --mac dir --publish never",
     "desktop:dmg": "npm run site-deps:prepare && npm run build:desktop && electron-builder --config electron-builder.yml --mac dmg zip --publish never",
     "desktop:smoke": "node desktop/unpacked-smoke.cjs",
-    "desktop:test": "node scripts/desktop-test.mjs",
+    "desktop:test": "node scripts/desktop-sandbox.mjs",
     "start": "next start -H 127.0.0.1 -p 3697",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
