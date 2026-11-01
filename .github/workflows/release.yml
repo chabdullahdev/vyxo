@@ -55,7 +55,7 @@ jobs:
           UNZIPPED=$(mktemp -d)
           ditto -x -k "$(ls release/*.zip | head -n 1)" "$UNZIPPED"
           codesign --verify --deep --strict --verbose=2 "$UNZIPPED/VYXO.app"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: mac
           path: |
@@ -84,7 +84,7 @@ jobs:
       - run: npm run desktop:win
       - name: Check the installer and its update file exist
         run: ls release/*-x64.exe release/*-x64.exe.blockmap release/latest.yml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: windows
           path: |
